@@ -66,3 +66,13 @@ tmp/
 models/
 *.bin
 *.safetensors
+
+.streamlit/
+DOCS/
+notebooks/
+processed_data/
+
+.dockerignore
+.gcloudignore
+
+requirements-prod.txt
