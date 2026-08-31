@@ -1,5 +1,5 @@
 from typing import List
-import logfire
+from app.observability.logfire_compat import logfire
 
 def chunk_text(text: str, chunk_size: int = 1500) -> List[str]:
     """

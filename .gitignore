@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+genv/
+enterprise_env/
+tenvv/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs and runtime state
+*.log
+.logfire/
+:memory:.ses
+*.ses
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build / generated scratch outputs
+build/
+dist/
+output/
+tmp/
+*.egg-info/
+
+# Local vector stores and model artifacts
+index.faiss
+metadata.pkl
+models/
+*.bin
+*.safetensors
+

@@ -1,18 +1,19 @@
-FROM python:3.11-slim-bookworm
-
-# Patch OS-level CVEs, then install system deps required by torch and native packages
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
-    gcc g++ libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# IP-SAKTI Sahayak — Prototype Dockerfile
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements first so pip install is a cached layer.
-# Re-runs only when requirements.txt changes, not on every code change.
-COPY requirements-prod.txt .
-RUN pip install --no-cache-dir --prefer-binary -r requirements-prod.txt
+# System deps for PDF/office parsing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    poppler-utils \
+    tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only the app package — everything else (evals/, ui/, DATA/, DOCS/) stays out
-COPY app/ ./app/
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

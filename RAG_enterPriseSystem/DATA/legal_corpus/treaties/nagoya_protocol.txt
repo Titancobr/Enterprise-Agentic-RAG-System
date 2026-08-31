@@ -1,0 +1,24 @@
+SOURCE: Nagoya Protocol on Access to Genetic Resources and the Fair and Equitable Sharing of Benefits Arising from their Utilization
+SECTIONS: Articles 6, 7, 15, 16, 17
+URL: https://www.cbd.int/abs/
+VERSION_DATE: 2014-10-12 (entry into force)
+JURISDICTION: INTERNATIONAL
+CATEGORY: treaty
+LANGUAGE: en
+
+Article 6 — Access to Genetic Resources
+Access to genetic resources shall be subject to prior informed consent (PIC) of the Party providing such resources... unless otherwise determined by that Party.
+
+Article 7 — Access to Traditional Knowledge Associated with Genetic Resources
+Access to traditional knowledge associated with genetic resources shall be subject to prior informed consent... of the indigenous and local communities concerned.
+
+Article 15 — Compliance with Domestic Legislation on ABS
+Each Party shall take appropriate measures... to ensure that genetic resources utilized within its jurisdiction have been accessed with PIC and MAT (mutually agreed terms).
+
+Article 16 — Compliance with Traditional Knowledge ABS
+Parties shall take measures to ensure that traditional knowledge associated with genetic resources utilized within their jurisdiction has been accessed with PIC and MAT.
+
+Article 17 — Model Contractual Clauses
+Parties shall encourage the development of model contractual clauses for MAT...
+
+[Explanation: The Nagoya Protocol implements the CBD's ABS provisions. India's BD Act 2023/2024 Rules implement Nagoya domestically. For international patent filings, disclosure of origin and PIC/MAT compliance is increasingly required by major patent offices.]

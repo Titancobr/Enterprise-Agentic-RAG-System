@@ -1,0 +1,13 @@
+SOURCE: Patents Act, 1970 (as amended 2024)
+SECTION: 3(p)
+URL: https://www.indiacode.nic.in/handle/123456789/2094
+VERSION_DATE: 2024-03-15
+JURISDICTION: INDIA
+CATEGORY: patent
+LANGUAGE: en
+
+Section 3(p) — What are not inventions
+
+An invention which, in effect, is traditional knowledge or which is an aggregation or duplication of known properties of traditionally known component or components.
+
+[Explanation: This section creates a statutory bar on patenting traditional knowledge. For Ayurveda, this means classical formulations documented in authoritative texts (First Schedule of Drugs & Cosmetics Act) cannot be patented as products. Process patents may still be available if the manufacturing process is novel and non-obvious.]

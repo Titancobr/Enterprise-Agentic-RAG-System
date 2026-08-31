@@ -1,0 +1,34 @@
+SOURCE: Drugs & Cosmetics Act, 1940 — First Schedule
+SECTION: List of authoritative Ayurvedic texts
+URL: https://www.indiacode.nic.in/handle/123456789/2155
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: drug_regulation
+LANGUAGE: en
+
+First Schedule — List of authoritative books of Ayurvedic, Siddha and Unani systems
+
+A. Ayurveda:
+1. Charaka Samhita
+2. Sushruta Samhita
+3. Ashtanga Hridaya
+4. Ashtanga Sangraha
+5. Bhavaprakasha
+6. Madhava Nidana
+7. Sharangadhara Samhita
+8. Bhaisajya Ratnavali
+9. Chakradatta
+10. Yogaratnakara
+... (and others notified by Central Government)
+
+[Explanation: Formulations whose composition and method of preparation are EXACTLY as described in these texts are "Classical Ayurvedic Medicines." They are listed in the First Schedule and enjoy:
+- Exemption from clinical trial requirements for licensing (Rule 158B)
+- No patent eligibility for the formulation itself (Section 3(p) bar)
+- GI protection possible for region-specific classical formulations
+- ABS exemption for vaids/hakims practicing for livelihood (BD Act Section 55)]
+
+Proprietary Ayurvedic Medicines (non-classical):
+- Not in First Schedule
+- Require licensing under AYUSH/State Drug Controller
+- May be patentable if novel composition/process (subject to Section 3(p))
+- Require safety data (Rule 158B) — may need non-clinical / clinical evidence

@@ -1,4 +1,4 @@
-import logfire
+from app.observability.logfire_compat import logfire
 from unstructured.partition.auto import partition
 
 def parse_office(file_path: str):

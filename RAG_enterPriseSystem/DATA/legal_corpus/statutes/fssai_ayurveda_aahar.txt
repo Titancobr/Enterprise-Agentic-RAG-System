@@ -1,0 +1,25 @@
+SOURCE: Food Safety and Standards (Ayurveda Aahar) Regulations, 2022 (amended 2024)
+SECTION: Key definitions and categories
+URL: https://www.fssai.gov.in/
+VERSION_DATE: 2024-06-01
+JURISDICTION: INDIA
+CATEGORY: food_regulation
+LANGUAGE: en
+
+Definitions:
+- "Ayurveda Aahar" means food prepared in accordance with the recipes/ingredients/methods described in authoritative Ayurvedic texts listed in Schedule I of these regulations.
+- "Ayurveda Aahar" does not include drugs as defined under Drugs & Cosmetics Act.
+
+Categories:
+1. Ayurveda Aahar — Foods based on classical recipes, no therapeutic claims
+2. Proprietary Ayurveda Aahar — New formulations, require safety assessment
+3. Food supplements / Nutraceuticals — Separate FSSAI regulations apply
+
+Key Requirements:
+- No disease treatment, cure, or prevention claims (Section 24 FSS Act)
+- Labeling must comply with FSS (Packaging & Labelling) Regulations
+- Ingredients must be from permitted list (Schedule II)
+- Manufacturing license from State Food Authority
+- GMP compliance per Schedule 4
+
+[Explanation: The Ayurveda Aahar route is for food/nutraceutical positioning. Lower regulatory burden than drug pathway, but NO patent protection for formulation, and NO therapeutic claims permitted. Suitable for wellness products, not medicines.]

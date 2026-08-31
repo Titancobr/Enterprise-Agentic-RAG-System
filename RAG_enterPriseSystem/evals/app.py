@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 load_dotenv()
 
-import logfire
+from app.observability.logfire_compat import logfire
 logfire.configure(token=os.getenv("LOGFIRE_TOKEN"), service_name="evals")
 
 # ─────────────────────────────────────────────────────────────────────────────

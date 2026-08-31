@@ -11,7 +11,7 @@ import copy
 import json
 import os
 import requests
-import logfire
+from app.observability.logfire_compat import logfire
 
 API_URL = "http://localhost:8000/query"
 RESPONSE_TRUNCATE = 300

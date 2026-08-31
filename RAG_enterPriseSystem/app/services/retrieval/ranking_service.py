@@ -1,6 +1,11 @@
 import time
-import logfire
-from flashrank import Ranker, RerankRequest
+from app.observability.logfire_compat import logfire
+
+try:
+    from flashrank import Ranker, RerankRequest
+except ModuleNotFoundError:
+    Ranker = None
+    RerankRequest = None
 
 # Lazy initialization - Ranker is loaded on first use to ensure logfire.configure() has run
 _ranker = None
@@ -12,6 +17,8 @@ def _get_ranker() -> Ranker:
     FlashRank uses a local ONNX model (ms-marco-MiniLM-L-6-v2) for ultra-fast reranking.
     """
     global _ranker
+    if Ranker is None:
+        raise RuntimeError("flashrank is not installed")
     if _ranker is None:
         logfire.info("🧠 Initializing FlashRank Model (TinyBERT) locally...")
         try:

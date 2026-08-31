@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup 
-import logfire
+from app.observability.logfire_compat import logfire
 
 def parse_html(file_path: str):
     """

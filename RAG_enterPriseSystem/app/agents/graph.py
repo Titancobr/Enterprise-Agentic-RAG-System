@@ -4,50 +4,89 @@ from app.agents.state import AgentState
 from app.agents.nodes.planner import planner_node
 from app.agents.nodes.retriever import retrieve_node
 from app.agents.nodes.responder import generate_node
+from app.agents.nodes.jurisdiction_router import jurisdiction_router_node
+from app.agents.nodes.formulation_classifier import formulation_classifier_node
+from app.agents.nodes.citation_verifier import citation_verifier_node
 
 
-# 1. Initialize the State Graph
 workflow = StateGraph(AgentState)
 
-
-# 2. Define the Nodes
 workflow.add_node("planner", planner_node)
+workflow.add_node("jurisdiction_router", jurisdiction_router_node)
+workflow.add_node("formulation_classifier", formulation_classifier_node)
 workflow.add_node("retriever", retrieve_node)
 workflow.add_node("responder", generate_node)
+workflow.add_node("citation_verifier", citation_verifier_node)
 
-# 3. Define the Edges & Routing Logic
+
 def route_planner(state: AgentState):
-    """
-    Routes the workflow based on the planner's decision.
-    """
-    if state["current_query"] == "CONVERSATIONAL":
+    intent = state.get("intent", "")
+    if intent == "OFF_TOPIC":
+        return "end"
+    if intent == "CONVERSATIONAL":
         return "responder"
+    if intent == "FORMULATION_CLASSIFICATION":
+        return "formulation_classifier"
+    return "jurisdiction_router"
+
+
+def route_after_classifier(state: AgentState):
+    return "jurisdiction_router"
+
+
+def route_after_jurisdiction(state: AgentState):
     return "retriever"
+
+
+def route_after_retriever(state: AgentState):
+    return "responder"
+
+
+def route_after_responder(state: AgentState):
+    intent = state.get("intent", "")
+    if intent == "CONVERSATIONAL":
+        return "end"
+    return "citation_verifier"
+
 
 workflow.set_entry_point("planner")
 
-
-# Conditional Edge: Planner -> Router -> (Retriever OR Responder)
 workflow.add_conditional_edges(
     "planner",
     route_planner,
     {
-        "retriever": "retriever",
-        "responder": "responder"
+        "end": END,
+        "responder": "responder",
+        "formulation_classifier": "formulation_classifier",
+        "jurisdiction_router": "jurisdiction_router"
     }
 )
 
+workflow.add_conditional_edges(
+    "formulation_classifier",
+    route_after_classifier,
+    {"jurisdiction_router": "jurisdiction_router"}
+)
 
-workflow.add_edge("retriever", "responder")
-workflow.add_edge("responder", END)
+workflow.add_conditional_edges(
+    "jurisdiction_router",
+    route_after_jurisdiction,
+    {"retriever": "retriever"}
+)
 
+workflow.add_conditional_edges(
+    "retriever",
+    route_after_retriever,
+    {"responder": "responder"}
+)
 
-# --- MEMORY UPGRADE ---
-# MemorySaver allows the agent to remember conversations based on 'thread_id'
+workflow.add_conditional_edges(
+    "responder",
+    route_after_responder,
+    {"end": END, "citation_verifier": "citation_verifier"}
+)
+
+workflow.add_edge("citation_verifier", END)
+
 checkpointer = MemorySaver()
-
-
-# 4. Compile the Graph with Memory
 rag_agent = workflow.compile(checkpointer=checkpointer)
-
-

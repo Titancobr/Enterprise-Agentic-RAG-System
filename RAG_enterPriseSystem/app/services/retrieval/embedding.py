@@ -1,7 +1,11 @@
 import time
-import logfire
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from app.observability.logfire_compat import logfire
 from app.config import settings
+
+try:
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+except ModuleNotFoundError:
+    GoogleGenerativeAIEmbeddings = None
 
 BATCH_SIZE = 50
 _GEMINI_DIM = 3072
@@ -15,6 +19,12 @@ _model_type: str | None = None  # "gemini" or "fallback"
 
 def _probe_gemini():
     """Try one embed call to verify Gemini is reachable. Returns model or None."""
+    if GoogleGenerativeAIEmbeddings is None:
+        logfire.warning("langchain-google-genai not installed. Will try local embedding fallback.")
+        return None
+    if not settings.GEMINI_API_KEY or settings.GEMINI_API_KEY.startswith("your_"):
+        logfire.warning("GEMINI_API_KEY not configured. Will try local embedding fallback.")
+        return None
     try:
         model = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-2-preview",
@@ -29,15 +39,23 @@ def _probe_gemini():
 
 
 def _load_fallback():
-    from sentence_transformers import SentenceTransformer
-    logfire.info("Loading sentence-transformers fallback (all-mpnet-base-v2, 768-dim).")
-    return SentenceTransformer("all-mpnet-base-v2")
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ModuleNotFoundError:
+        logfire.warning("sentence-transformers not installed; embeddings unavailable.")
+        return None
+    logfire.info("Loading local sentence-transformers fallback (all-mpnet-base-v2, 768-dim).")
+    try:
+        return SentenceTransformer("all-mpnet-base-v2", local_files_only=True)
+    except Exception as e:
+        logfire.warning(f"Local sentence-transformers model unavailable: {e}")
+        return None
 
 
 def _init():
     """Initialise embedding model once per process. Called lazily on first use."""
     global _active_model, _model_type
-    if _active_model is not None:
+    if _active_model is not None or _model_type == "none":
         return
 
     gemini = _probe_gemini()
@@ -46,7 +64,7 @@ def _init():
         _model_type = "gemini"
     else:
         _active_model = _load_fallback()
-        _model_type = "fallback"
+        _model_type = "fallback" if _active_model is not None else "none"
 
 
 # ── Public helpers ─────────────────────────────────────────────────────────────
@@ -54,7 +72,11 @@ def _init():
 def get_embedding_dim() -> int:
     """Return the vector dimension for the active model. Call after _init()."""
     _init()
-    return _GEMINI_DIM if _model_type == "gemini" else _FALLBACK_DIM
+    if _model_type == "gemini":
+        return _GEMINI_DIM
+    if _model_type == "fallback":
+        return _FALLBACK_DIM
+    return 0
 
 
 # ── Batch embedding with retry ─────────────────────────────────────────────────
@@ -80,6 +102,8 @@ def _embed_batch(batch: list[str]) -> list[list[float]]:
                     raise
         raise RuntimeError("Gemini rate limit persisted after 4 attempts.")
     else:
+        if _active_model is None:
+            raise RuntimeError("No embedding model available.")
         return _active_model.encode(batch, show_progress_bar=False).tolist()
 
 
@@ -89,6 +113,8 @@ def embed_query(query: str) -> list[float]:
     _init()
     if _model_type == "gemini":
         return _active_model.embed_query(query)
+    if _active_model is None:
+        raise RuntimeError("No embedding model available.")
     return _active_model.encode([query])[0].tolist()
 
 

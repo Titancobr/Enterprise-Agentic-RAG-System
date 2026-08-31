@@ -1,4 +1,4 @@
-import logfire
+from app.observability.logfire_compat import logfire
 from pypdf import PdfReader
 
 

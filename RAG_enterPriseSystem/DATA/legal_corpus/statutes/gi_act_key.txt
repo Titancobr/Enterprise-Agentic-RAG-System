@@ -1,0 +1,17 @@
+SOURCE: Geographical Indications of Goods (Registration & Protection) Act, 1999
+SECTIONS: 2, 11, 13, 18, 21
+URL: https://www.indiacode.nic.in/handle/123456789/1789
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: gi
+LANGUAGE: en
+
+Section 2(e) — "Geographical Indication" means an indication which identifies goods as originating in the territory of a country, or a region or locality in that territory, where a given quality, reputation or other characteristic of such goods is essentially attributable to its geographical origin.
+
+Section 11 — Prohibition of registration of certain geographical indications
+Cannot register GI if: generic, contrary to public order, not protected in country of origin, etc.
+
+Section 13 — Registration confers rights
+Registered proprietor and authorized users have exclusive right to use GI. Relief for infringement under Section 21.
+
+[Explanation for Ayurveda: Region-specific classical formulations (e.g., "Kashmir Saffron", "Kerala Ayurvedic Oil", "Madhya Pradesh Ashwagandha") can be protected as GIs. This protects the collective rights of cultivators and traditional manufacturers in that region. GI does not protect the formulation per se, but the link between the product and its geographical origin.]

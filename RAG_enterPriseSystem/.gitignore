@@ -46,7 +46,7 @@ enterprise_env
 
 commands.md
 
-.logfire
+.logfire/
 
 tenvv
 
@@ -56,4 +56,13 @@ tenvv
 # Logs
 *.log
 
-DOCS
+# Runtime state
+:memory:.ses
+*.ses
+
+# Local generated files
+output/
+tmp/
+models/
+*.bin
+*.safetensors

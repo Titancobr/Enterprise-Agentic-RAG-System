@@ -1,0 +1,16 @@
+SOURCE: Patents (Amendment) Rules, 2024
+SECTION: Form 18A
+URL: https://www.indiacode.nic.in/
+VERSION_DATE: 2024-03-15
+JURISDICTION: INDIA
+CATEGORY: patent
+LANGUAGE: en
+
+Form 18A — Statement regarding source of biological material / traditional knowledge
+
+Rule 13(8) requires every patent application involving biological material or traditional knowledge to disclose:
+(a) the geographical origin of the biological material used in the invention;
+(b) the traditional knowledge, if any, associated with the invention;
+(c) whether prior informed consent and fair and equitable benefit sharing arrangements are in place.
+
+[Explanation: This form operationalizes India's ABS obligations under the Nagoya Protocol. Failure to disclose or false disclosure is a ground for opposition (Section 25) and revocation (Section 64).]

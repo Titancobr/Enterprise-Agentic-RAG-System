@@ -1,0 +1,25 @@
+SOURCE: WIPO Treaty on Intellectual Property, Genetic Resources and Associated Traditional Knowledge (GRATK), 2024
+SECTIONS: Article 3, 4, 5, 6, 7
+URL: https://www.wipo.int/treaties/en/ip/genetic_resources/
+VERSION_DATE: 2024-05-24
+JURISDICTION: INTERNATIONAL
+CATEGORY: treaty
+LANGUAGE: en
+
+Article 3 — Disclosure Requirement for Genetic Resources
+Where a patent application claims an invention based on genetic resources, the applicant shall disclose:
+(a) the country of origin of the genetic resources; or
+(b) where the country of origin is not known, the source of the genetic resources.
+
+Article 4 — Disclosure Requirement for Traditional Knowledge
+Where a patent application claims an invention based on traditional knowledge associated with genetic resources, the applicant shall disclose:
+(a) the Indigenous Peoples or local community who provided the traditional knowledge; or
+(b) where the providers are not known, the source of the traditional knowledge.
+
+Article 5 — Implementation of the Disclosure Requirement
+Contracting Parties shall provide measures to ensure compliance with the disclosure requirement... Failure to disclose shall not result in invalidation/unenforceability unless fraudulent intent.
+
+Article 6 — Information Systems
+Contracting Parties may establish databases of genetic resources and associated traditional knowledge... Access subject to authorization.
+
+[Explanation: The GRATK Treaty (adopted May 2024) creates the first international legal framework linking patent disclosure to genetic resources and traditional knowledge. India, as a megadiverse country and TK holder, is a key proponent. Once ratified, Indian patent law will need to align (Form 18A is a precursor).]

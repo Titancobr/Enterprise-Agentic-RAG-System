@@ -1,264 +1,181 @@
-# Enterprise Agentic RAG: LangGraph · Guardrails · LLM Gateway · RAGAS Evals
+# IP-SAKTI Sahayak: Auditable Multilingual Regulatory & IP Intelligence Platform for Ayurveda
+## SIH 2026 Problem Statement ID: 26045
+
+> **Core Positioning:** *"From formulation to compliance: one intelligent, source-grounded platform for navigating Ayurveda-related IP and regulatory complexity."*
+
+---
+
+## 🏛️ System Architecture Overview (Vibrant Color Theme)
 
 ```mermaid
 graph LR
 
     %% ── Interfaces ───────────────────────────────────────────────────────────
-    subgraph UI ["🖥️  Interface Layer"]
+    subgraph UI ["🖥️ Interface Layer"]
         direction TB
-        CHAT["Streamlit\nChat UI"]
+        CHAT["Streamlit\nChat UI & Trust Panel"]
         EVAL_UI["Streamlit\nEval App"]
+        BHASHINI["🌐 Bhashini & IndicTrans2\nMultilingual Voice & Text"]
     end
 
     %% ── API + Safety ─────────────────────────────────────────────────────────
-    subgraph SAFETY ["🛡️  API + Safety"]
+    subgraph SAFETY ["🛡️ API & Safety Layer"]
         direction TB
-        API["⚡ FastAPI\n/query"]
-        GR{"NeMo\nGuardrails"}
+        API["⚡ FastAPI\n/query Endpoint"]
+        GR{"NeMo Guardrails\nPrompt Injection Filter"}
     end
 
-    %% ── LangGraph Agent ──────────────────────────────────────────────────────
-    subgraph AGENT ["🧠  LangGraph Agentic Core"]
+    %% ── LangGraph Agentic Core ────────────────────────────────────────────────
+    subgraph AGENT ["🧠 LangGraph Agentic Brain"]
         direction TB
-        PL["🗺️ Planner\nIntent Classification"]
-        RT["🔍 Retriever\nVector Search"]
-        RS["💬 Responder\nAnswer Generation"]
-        MEM[("💾 MemorySaver\nConversation History")]
+        ROUTER["⚖️ Jurisdiction Router\nDomestic vs International"]
+        CLASS["🧪 Formulation Classifier\nClassical vs Proprietary"]
+        RT["🔍 Retriever Node\nHybrid Lexical + Vector"]
+        RS["💬 Responder Node\nGrounded Answer Synthesis"]
+        MEM[("💾 MemorySaver\nChat History")]
     end
 
-    %% ── Retrieval ────────────────────────────────────────────────────────────
-    subgraph RETRIEVAL ["🔎  Retrieval Layer"]
+    %% ── Retrieval Layer ───────────────────────────────────────────────────────
+    subgraph RETRIEVAL ["🔎 Hybrid Retrieval Layer"]
         direction TB
-        QD[("🗄️ Qdrant Cloud\nVector DB")]
+        BM25["🔤 Rank-BM25\nSparse Lexical Search"]
+        QD[("🗄️ Qdrant Cloud\nDense Vector DB")]
         FR["⚡ FlashRank\nLocal Reranker"]
     end
 
-    %% ── LLM Gateway ──────────────────────────────────────────────────────────
-    subgraph GATEWAY ["🌐  LLM Gateway"]
+    %% ── LLM Gateway & Models ─────────────────────────────────────────────────
+    subgraph GATEWAY ["🌐 LLM Gateway & Models"]
         direction TB
-        PK["🔀 Portkey\nUnified Gateway"]
+        PK["🔀 Portkey Gateway\nUnified Router"]
         G1["🦙 Groq Primary\nLlama 3.3 · 70B"]
         G2["🦙 Groq Fallback\nLlama 3.1 · 8B"]
+        VERIFY["✅ Citation & Output Verification\nClaim Support Check"]
     end
 
-    %% ── Ingestion ────────────────────────────────────────────────────────────
-    subgraph INGEST ["📥  Ingestion Pipeline"]
+    %% ── Ingestion Engine ──────────────────────────────────────────────────────
+    subgraph INGEST ["📥 Ingestion Pipeline"]
         direction TB
-        LOADER["Document Loaders\nPDF · HTML · DOCX · PPTX · TXT"]
-        PARSED[("📁 processed_data/\nLocal JSON Chunks")]
-        EMB["🔢 Gemini Embeddings\ngemini-embedding-2-preview · 3072-dim"]
+        LOADER["Statute Loaders\nIndia Code · WIPO · FSSAI"]
+        PARSED[("📁 processed_data/\nLegal Chunks")]
+        EMB["🔢 Gemini Embeddings\ngemini-embedding-2-preview"]
     end
 
     %% ── Observability ────────────────────────────────────────────────────────
-    subgraph OBS ["📡  Observability"]
+    subgraph OBS ["📡 Observability & Tracing"]
         direction LR
-        LF["🔥 Pydantic\nLogfire"]
-        LS["🦜 LangSmith\nTracing"]
+        LF["🔥 Logfire\nAPI Spans"]
+        LS["🦜 LangSmith\nAgent Traces"]
     end
 
-    %% ── Evals ────────────────────────────────────────────────────────────────
-    subgraph EVALS ["🧪  RAGAS Evaluation Suite"]
+    %% ── Evaluation Suite ─────────────────────────────────────────────────────
+    subgraph EVALS ["🧪 RAGAS Evaluation Suite"]
         direction LR
-        GD[("📋 Golden Dataset\n15 Samples · 6 Guardrail Tests")]
-        RAGAS["RAGAS Metrics\nFaithfulness · Relevancy\nPrecision · Recall · Correctness"]
-        TC["Tool Correctness\nJaccard · Zero LLM"]
-        JUDGE["⚖️ Judge LLM\nGroq · JUDGE_GROQ Key"]
+        GD[("📋 Golden Dataset\n500+ QA Pairs")]
+        RAGAS["RAGAS Metrics Engine\nFaithfulness · Recall"]
+        TC["Citation Check\nVerification Engine"]
+        JUDGE["⚖️ Judge LLM\nGroq Pipeline"]
     end
 
-    %% ── Main Query Flow ──────────────────────────────────────────────────────
-    CHAT -->|query| API
+    %% ── Query Dataflow ───────────────────────────────────────────────────────
+    CHAT -->|"user query"| API
+    BHASHINI -.-> CHAT
     API --> GR
-    GR -->|"❌ blocked"| CHAT
-    GR -->|"✅ pass"| PL
-    PL -->|conversational| RS
-    PL -->|technical| RT
+    GR -->|"blocked"| CHAT
+    GR -->|"pass"| ROUTER
+    ROUTER -->|"conversational"| RS
+    ROUTER -->|"regulatory query"| CLASS
+    CLASS --> RT
+    RT --> BM25
     RT --> QD
+    BM25 --> FR
     QD --> FR
     FR --> RS
     RS --> PK
-    PL --> PK
     PK --> G1
-    PK -.->|fallback| G2
+    PK -.->|"fallback"| G2
+    PK --> VERIFY
     RS -.-> MEM
-    MEM -.-> PL
+    MEM -.-> ROUTER
 
-    %% ── Ingestion Flow ───────────────────────────────────────────────────────
+    %% ── Ingestion Dataflow ───────────────────────────────────────────────────
     LOADER --> PARSED
     PARSED --> EMB
     EMB --> QD
 
-    %% ── Eval Flow ────────────────────────────────────────────────────────────
-    EVAL_UI -->|phase 1| API
+    %% ── RAGAS Evaluation Dataflow ────────────────────────────────────────────
+    FR -.->|"retrieved contexts"| RAGAS
+    RS -.->|"generated answer"| RAGAS
+    API -.->|"queries & ground truth"| RAGAS
+    EVAL_UI -->|"trigger evals"| API
     GD --> RAGAS
     GD --> TC
     RAGAS --> JUDGE
+    RAGAS -->|"eval metrics"| EVAL_UI
 
     %% ── Observability Traces ─────────────────────────────────────────────────
-    API -.->|spans| LF
-    AGENT -.->|traces| LS
-
-    %% ── Colors ───────────────────────────────────────────────────────────────
-    classDef ui        fill:#3B82F6,stroke:#1D4ED8,color:#fff,rx:8
-    classDef safety    fill:#EF4444,stroke:#B91C1C,color:#fff,rx:8
-    classDef agent     fill:#8B5CF6,stroke:#6D28D9,color:#fff,rx:8
-    classDef retrieval fill:#10B981,stroke:#047857,color:#fff,rx:8
-    classDef gateway   fill:#F59E0B,stroke:#B45309,color:#fff,rx:8
-    classDef ingest    fill:#6366F1,stroke:#4338CA,color:#fff,rx:8
-    classDef obs       fill:#14B8A6,stroke:#0F766E,color:#fff,rx:8
-    classDef evals     fill:#EC4899,stroke:#BE185D,color:#fff,rx:8
-    classDef memory    fill:#7C3AED,stroke:#5B21B6,color:#fff,rx:8
-
-    class CHAT,EVAL_UI ui
-    class API,GR safety
-    class PL,RT,RS agent
-    class QD,FR retrieval
-    class PK,G1,G2 gateway
-    class LOADER,PARSED,EMB ingest
-    class LF,LS obs
-    class GD,RAGAS,TC,JUDGE evals
-    class MEM memory
-```
-
----
-
-## System Architecture — Portal View
-
-```mermaid
-graph TB
-
-    subgraph UI ["1. User Interface"]
-        direction LR
-        CHAT["Streamlit Chat UI"]
-        EAPP["Streamlit Eval App"]
-    end
-
-    subgraph SAFETY ["2. API + Safety Gate"]
-        direction LR
-        API["⚡ FastAPI  /query"]
-        GR{"🛡️ NeMo Guardrails\nBlocks · Jailbreak · Off-topic · Injection"}
-    end
-
-    subgraph AGENT ["3. Agent Engine  —  LangGraph"]
-        direction LR
-        PL["🗺️ Planner Node\nIntent Classification"]
-        RT["🔍 Retriever Node\nVector Search"]
-        RS["💬 Responder Node\nAnswer Generation"]
-        MEM[("💾 MemorySaver\nConversation History")]
-    end
-
-    subgraph KNOWLEDGE ["4. Knowledge & LLMs"]
-        direction LR
-        QD[("🗄️ Qdrant Cloud\nVector DB")]
-        FR["⚡ FlashRank\nLocal Reranker"]
-        PK["🔀 Portkey Gateway\nRouting + Fallback"]
-        G1["🦙 Groq Primary\nLlama 3.3 · 70B"]
-        G2["🦙 Groq Fallback\nLlama 3.1 · 8B"]
-    end
-
-    subgraph INGEST ["5. Data Ingestion"]
-        direction LR
-        LOAD["Document Loaders\nPDF · HTML · DOCX · PPTX · TXT"]
-        PROC[("📁 processed_data/\nLocal JSON Chunks")]
-        EMB["🔢 Gemini Embeddings\ngemini-embedding-2-preview · 3072-dim"]
-    end
-
-    subgraph EVALS ["6. Evaluation Suite  —  RAGAS"]
-        direction LR
-        GD[("📋 Golden Dataset\n15 RAG Samples · 6 Guardrail Tests")]
-        RAGAS["RAGAS Metrics\nFaithfulness · Relevancy · Precision\nRecall · Correctness"]
-        TC["Tool Correctness\nJaccard · Zero LLM Cost"]
-        JG["⚖️ Judge LLM\nGroq · Separate Key"]
-    end
-
-    subgraph OBS ["7. Monitoring & Observability"]
-        direction LR
-        LF["🔥 Pydantic Logfire\nDistributed Tracing"]
-        LS["🦜 LangSmith\nAgent Step Tracing"]
-    end
-
-    %% ── Query Flow ───────────────────────────────────────────────────────────
-    CHAT -->|user query| API
-    EAPP -->|phase 1 query| API
-    API --> GR
-    GR -->|"❌ blocked"| CHAT
-    GR -->|"✅ pass"| PL
-    PL -->|"technical"| RT
-    PL -->|"conversational"| RS
-    RT --> QD
-    QD --> FR
-    FR --> RS
-    RS --> PK
-    PL --> PK
-    PK --> G1
-    PK -.->|"fallback"| G2
-    RS -.-> MEM
-    MEM -.-> PL
-
-    %% ── Ingestion Flow ───────────────────────────────────────────────────────
-    LOAD --> PROC
-    PROC --> EMB
-    EMB --> QD
-
-    %% ── Eval Flow ────────────────────────────────────────────────────────────
-    GD --> RAGAS
-    GD --> TC
-    RAGAS --> JG
-
-    %% ── Observability ────────────────────────────────────────────────────────
     API -.->|"spans"| LF
     AGENT -.->|"traces"| LS
 
-    %% ── Colours ──────────────────────────────────────────────────────────────
-    classDef ui        fill:#2563EB,stroke:#1E40AF,color:#fff
-    classDef safety    fill:#DC2626,stroke:#991B1B,color:#fff
-    classDef agent     fill:#7C3AED,stroke:#5B21B6,color:#fff
-    classDef knowledge fill:#D97706,stroke:#92400E,color:#fff
-    classDef ingest    fill:#4F46E5,stroke:#3730A3,color:#fff
-    classDef evals     fill:#DB2777,stroke:#9D174D,color:#fff
-    classDef obs       fill:#0D9488,stroke:#0F766E,color:#fff
-    classDef memory    fill:#6D28D9,stroke:#4C1D95,color:#fff
+    %% ── Vibrant Color Styling ────────────────────────────────────────────────
+    classDef ui        fill:#2563EB,stroke:#1E40AF,color:#ffffff
+    classDef safety    fill:#DC2626,stroke:#991B1B,color:#ffffff
+    classDef agent     fill:#7C3AED,stroke:#5B21B6,color:#ffffff
+    classDef retrieval fill:#059669,stroke:#065F46,color:#ffffff
+    classDef gateway   fill:#D97706,stroke:#92400E,color:#ffffff
+    classDef ingest    fill:#4F46E5,stroke:#3730A3,color:#ffffff
+    classDef evals     fill:#DB2777,stroke:#9D174D,color:#ffffff
+    classDef obs       fill:#0D9488,stroke:#0F766E,color:#ffffff
 
-    class CHAT,EAPP ui
+    class CHAT,EVAL_UI,BHASHINI ui
     class API,GR safety
-    class PL,RT,RS agent
-    class QD,FR,PK,G1,G2 knowledge
-    class LOAD,PROC,EMB ingest
-    class GD,RAGAS,TC,JG evals
+    class ROUTER,CLASS,RT,RS agent
+    class BM25,QD,FR retrieval
+    class PK,G1,G2,VERIFY gateway
+    class LOADER,PARSED,EMB ingest
+    class GD,RAGAS,TC,JUDGE evals
     class LF,LS obs
-    class MEM memory
 ```
 
 ---
 
-## System Architecture — Compact View
+## ⚡ Compact System Flow (Vibrant Color Theme)
 
 ```mermaid
 graph TB
-    A["🖥️ 1. Streamlit UI\nChat + Eval App"]
-    B["⚡ 2. FastAPI + 🛡️ NeMo Guardrails"]
-    C["🧠 3. LangGraph Agent\nPlanner → Retriever → Responder"]
-    D["🗄️ 4. Qdrant Cloud\n+ FlashRank Reranker"]
-    E["🌐 5. Portkey Gateway\nGroq Llama 3.3 70B · Fallback 8B"]
-    F["📥 6. Data Ingestion\nLocal Parsers · Gemini Embeddings · processed_data/"]
-    G["🧪 7. RAGAS Evals\nFaithfulness · Precision · Recall · Correctness"]
-    H["📡 8. Monitoring\nLogfire · LangSmith"]
+    A["🖥️ 1. Streamlit Chat UI & Bhashini\nMultilingual Voice/Text (22 Indic Languages)"]
+    B["⚡ 2. FastAPI + 🛡️ NeMo Guardrails\nPrompt Injection Defense & Token Savings"]
+    C["🧠 3. LangGraph Agent Brain\nJurisdiction Router & Formulation Classifier"]
+    D["🔎 4. Hybrid Retrieval Engine\nRank-BM25 + Qdrant Cloud + FlashRank Reranker"]
+    E["🌐 5. Portkey Gateway & Model Fallback\nPrimary Groq LLM + Fallback + Local Grounded Demo Mode"]
+    F["📥 6. Ingestion Pipeline\nVersion-Tracked Ingestion & Gemini Embeddings"]
+    G["🧪 7. RAGAS Evaluation Suite\nFaithfulness · Precision · Recall · Citation Verification"]
+    H["📡 8. Tracing & Observability\nLogfire Spans + LangSmith Agent Traces"]
 
-    A --> B --> C
-    C --> D --> C
-    C --> E
-    F --> D
-    A -.-> G
-    B -.-> H
-    C -.-> H
+    A -->|"user query"| B
+    B -->|"passed query"| C
+    C -->|"search query"| D
+    D -->|"reranked context"| C
+    C -->|"context + prompt"| E
+    E -->|"generated answer"| C
+    C -->|"final response"| A
+    F -->|"indexed vectors"| D
 
-    classDef ui      fill:#2563EB,stroke:#1E40AF,color:#fff
-    classDef safety  fill:#DC2626,stroke:#991B1B,color:#fff
-    classDef agent   fill:#7C3AED,stroke:#5B21B6,color:#fff
-    classDef db      fill:#059669,stroke:#065F46,color:#fff
-    classDef llm     fill:#D97706,stroke:#92400E,color:#fff
-    classDef ingest  fill:#4F46E5,stroke:#3730A3,color:#fff
-    classDef evals   fill:#DB2777,stroke:#9D174D,color:#fff
-    classDef obs     fill:#0D9488,stroke:#0F766E,color:#fff
+    %% RAGAS Dataflow Connections
+    D -.->|"retrieved context"| G
+    E -.->|"generated answer"| G
+    A -.->|"eval scorecards"| G
+
+    B -.->|"spans"| H
+    C -.->|"traces"| H
+
+    classDef ui      fill:#2563EB,stroke:#1E40AF,color:#ffffff
+    classDef safety  fill:#DC2626,stroke:#991B1B,color:#ffffff
+    classDef agent   fill:#7C3AED,stroke:#5B21B6,color:#ffffff
+    classDef db      fill:#059669,stroke:#065F46,color:#ffffff
+    classDef llm     fill:#D97706,stroke:#92400E,color:#ffffff
+    classDef ingest  fill:#4F46E5,stroke:#3730A3,color:#ffffff
+    classDef evals   fill:#DB2777,stroke:#9D174D,color:#ffffff
+    classDef obs     fill:#0D9488,stroke:#0F766E,color:#ffffff
 
     class A ui
     class B safety

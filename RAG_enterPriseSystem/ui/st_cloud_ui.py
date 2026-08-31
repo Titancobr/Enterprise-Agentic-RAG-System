@@ -3,7 +3,40 @@ import streamlit as st
 import requests
 import time
 import uuid
-import logfire
+
+try:
+    import logfire
+except ModuleNotFoundError:
+    import logging
+    from contextlib import contextmanager
+
+    logging.basicConfig(level=logging.INFO)
+    _logger = logging.getLogger("ip_sakti_ui")
+
+    @contextmanager
+    def _noop_span(*args, **kwargs):
+        yield None
+
+    class _LogfireFallback:
+        def configure(self, *args, **kwargs):
+            return None
+
+        def instrument_requests(self, *args, **kwargs):
+            return None
+
+        def span(self, *args, **kwargs):
+            return _noop_span(*args, **kwargs)
+
+        def info(self, message, *args, **kwargs):
+            _logger.info(message)
+
+        def warning(self, message, *args, **kwargs):
+            _logger.warning(message)
+
+        def error(self, message, *args, **kwargs):
+            _logger.error(message)
+
+    logfire = _LogfireFallback()
 
 
 # Initialize Logfire

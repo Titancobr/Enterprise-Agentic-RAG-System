@@ -1,0 +1,41 @@
+SOURCE: Biological Diversity (Amendment) Act, 2023 & Rules 2024
+SECTIONS: 3, 7, 20, 21, 24, 35, 55
+URL: https://www.indiacode.nic.in/
+VERSION_DATE: 2024-07-01
+JURISDICTION: INDIA
+CATEGORY: biodiversity_abs
+LANGUAGE: en
+
+Section 3 — Certain persons not to undertake biodiversity related activities without approval of National Biodiversity Authority
+
+(1) No person referred to in sub-section (2) shall, without previous approval of the National Biodiversity Authority, obtain any biological resource occurring in India or knowledge associated thereto for research or for commercial utilization or for bio-survey and bio-utilization.
+
+(2) The persons referred to in sub-section (1) are:
+(a) a person who is not a citizen of India;
+(b) a citizen of India, who is a non-resident as defined in clause (30) of section 2 of the Income-tax Act, 1961;
+(c) a body corporate, association or organization —
+(i) not incorporated or registered in India; or
+(ii) incorporated or registered in India under any law for the time being in force which has any non-Indian participation in its share capital or management.
+
+Section 7 — Prior intimation to State Biodiversity Board
+
+No citizen of India or body corporate, association or organization registered in India shall obtain any biological resource for commercial utilization, or bio-survey and bio-utilization for commercial utilization except after giving prior intimation to the State Biodiversity Board concerned.
+
+Section 20 — Determination of equitable benefit sharing
+
+The National Biodiversity Authority shall, while granting approval under section 19, determine the benefit sharing...which may include:
+- grant of joint ownership of intellectual property rights
+- transfer of technology
+- location of production, research and development units
+- association of Indian scientists, benefit claimers and the local people with research and development
+- setting up of venture capital fund
+- payment of monetary compensation and other non-monetary benefits
+
+Section 55 — Exemptions
+
+The provisions of this Act shall not apply to:
+(a) collaborative research projects involving transfer or exchange of biological resources or information relating thereto under collaborative research projects sponsored or approved by the Central Government...
+(b) access to biological resources by cultivators and farmers...
+(c) vaids and hakims practicing indigenous medicine...for sustenance and livelihood
+
+[Explanation: The 2023 Amendment and 2024 Rules streamlined approvals — "prior intimation" to SBB for Indian entities (instead of NBA approval), faster timelines, and clarified exemptions for traditional practitioners. However, commercial utilization by Indian companies still requires SBB intimation and benefit-sharing determination.]

@@ -2,7 +2,7 @@ import os
 import sys
 import uuid
 import json
-import logfire
+from app.observability.logfire_compat import logfire
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
