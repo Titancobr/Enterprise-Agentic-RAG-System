@@ -38,18 +38,26 @@ def formulation_classifier_node(state: AgentState):
     Also decide if ABS/biodiversity compliance may be required when biological resources,
     commercial utilization, research, or foreign access are involved.
 
-    Return STRICT JSON only:
+    Return STRICT JSON ONLY. Do not use markdown blocks. Do not add any text before or after the JSON.
     {{
       "formulation_type": "...",
-      "abs_required": true/false,
-      "confidence_score": 0.0-1.0,
-      "missing_questions": ["question 1", "question 2"]
+      "abs_required": true,
+      "confidence_score": 0.8,
+      "missing_questions": []
     }}
     """
 
     with logfire.span("🧪 Formulation Classifier"):
         try:
             raw = llm.invoke(prompt).content.strip()
+            # Strip markdown code blocks if the LLM adds them
+            if raw.startswith("```json"):
+                raw = raw[7:]
+            if raw.startswith("```"):
+                raw = raw[3:]
+            if raw.endswith("```"):
+                raw = raw[:-3]
+            raw = raw.strip()
             logfire.info(f"Classifier raw output: {raw[:300]}")
         except Exception as e:
             logfire.warning(f"Classifier LLM unavailable; using fallback: {e}")
@@ -66,7 +74,7 @@ def formulation_classifier_node(state: AgentState):
         abs_required = parsed.get("abs_required", abs_required)
         confidence_score = float(parsed.get("confidence_score", confidence_score))
     except Exception:
-        logfire.warning("Could not parse classifier JSON; falling back to insufficient info.")
+        logfire.warning("Could not parse classifier JSON; falling back to keyword heuristics.")
         formulation_type, abs_required, confidence_score = _fallback_classification(query)
 
     if formulation_type not in FORMULATION_TYPES:
@@ -102,4 +110,4 @@ def _fallback_classification(query: str) -> tuple[str, bool | None, float]:
         return "CLASSICAL_AYURVEDIC", abs_required, 0.7
     if any(term in text for term in ("proprietary", "new combination", "modified", "tablet", "capsule", "syrup", "formulation")):
         return "PROPRIETARY_AYURVEDIC", abs_required, 0.6
-    return "INSUFFICIENT_INFO", None, 0.45
+    return "INSUFFICIENT_INFO", None, 0.6

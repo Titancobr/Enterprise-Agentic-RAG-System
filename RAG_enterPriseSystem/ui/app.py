@@ -1,9 +1,16 @@
 import os
+import io
 import streamlit as st
 import requests
 import time
 import uuid
 from dotenv import load_dotenv
+
+try:
+    from audio_recorder_streamlit import audio_recorder
+    AUDIO_RECORDER_AVAILABLE = True
+except ImportError:
+    AUDIO_RECORDER_AVAILABLE = False
 
 try:
     import logfire
@@ -95,6 +102,34 @@ if "jurisdiction" not in st.session_state:
 if "show_classifier" not in st.session_state:
     st.session_state.show_classifier = False
 
+if "voice_transcript" not in st.session_state:
+    st.session_state.voice_transcript = ""
+
+if "last_audio_bytes" not in st.session_state:
+    st.session_state.last_audio_bytes = None
+
+
+def _transcribe_audio_groq(audio_bytes: bytes) -> str:
+    """Send raw audio bytes to Groq Whisper for transcription."""
+    try:
+        from groq import Groq
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            return ""
+        client = Groq(api_key=api_key)
+        audio_file = io.BytesIO(audio_bytes)
+        audio_file.name = "voice_input.wav"
+        transcription = client.audio.transcriptions.create(
+            file=audio_file,
+            model="whisper-large-v3-turbo",
+            response_format="text",
+            language="en",
+        )
+        return transcription.strip() if isinstance(transcription, str) else transcription.text.strip()
+    except Exception as e:
+        logfire.error(f"Groq Whisper transcription failed: {e}")
+        return ""
+
 
 with st.sidebar:
     st.title("🏛️ IP-SAKTI Sahayak")
@@ -117,6 +152,31 @@ with st.sidebar:
     if st.button("🔍 Classify a Product", width="stretch"):
         st.session_state.show_classifier = not st.session_state.show_classifier
     
+    st.markdown("---")
+    st.markdown("### 🎙️ Voice Input")
+    if AUDIO_RECORDER_AVAILABLE:
+        st.caption("Click the mic, speak your query, then release. Transcribed via Groq Whisper.")
+        audio_bytes = audio_recorder(
+            text="",
+            recording_color="#e74c3c",
+            neutral_color="#3498db",
+            icon_name="microphone",
+            icon_size="2x",
+            pause_threshold=2.5,
+            key="voice_recorder",
+        )
+        if audio_bytes and audio_bytes != st.session_state.last_audio_bytes:
+            st.session_state.last_audio_bytes = audio_bytes
+            with st.spinner("🎧 Transcribing with Whisper…"):
+                transcript = _transcribe_audio_groq(audio_bytes)
+            if transcript:
+                st.session_state.voice_transcript = transcript
+                st.success(f"✅ Transcript: *{transcript[:80]}{'…' if len(transcript) > 80 else ''}*")
+            else:
+                st.warning("Could not transcribe audio. Please try again.")
+    else:
+        st.info("`audio-recorder-streamlit` not installed. Run `pip install audio-recorder-streamlit`.")
+
     st.markdown("---")
     st.markdown("### 🌐 Language (Bhashini)")
     language_options = {
@@ -207,28 +267,110 @@ for message in st.session_state.messages:
             meta = message["metadata"]
             
             with st.expander("🔍 Why Trust This Answer?", expanded=False):
-                col1, col2, col3 = st.columns(3)
                 intent = meta.get("intent")
                 chunks = int(meta.get("chunks_retrieved") or 0)
-                confidence = meta.get("confidence_score")
-                confidence_applicable = intent not in {"CONVERSATIONAL", "OFF_TOPIC", "BLOCKED"} and confidence is not None
+                citations = meta.get("citations", [])
+                confidence_label = meta.get("confidence_label")  # High / Medium / Low
+                confidence_score = meta.get("confidence_score")
+                confidence_applicable = intent not in {"CONVERSATIONAL", "OFF_TOPIC", "BLOCKED"}
 
+                # --- Top metrics row ---
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Jurisdiction", meta.get("jurisdiction") or "Not applicable")
                 with col2:
-                    st.metric("Chunks Retrieved", chunks)
+                    st.metric("Evidence Retrieved", f"{chunks} chunk(s)")
                 with col3:
-                    if confidence_applicable:
-                        st.metric("Confidence", f"{float(confidence):.0%}")
+                    if confidence_applicable and confidence_label:
+                        # Always show categorical label for legal AI — never a misleading %
+                        conf_color = {"High": "🟢", "Medium": "🟡", "Low": "🔴"}.get(confidence_label, "⚪")
+                        st.metric("Confidence", f"{conf_color} {confidence_label}")
+                    elif confidence_applicable and confidence_score is not None:
+                        # Fallback if label not provided by API
+                        if confidence_score >= 0.70:
+                            label = "🟢 High"
+                        elif confidence_score >= 0.50:
+                            label = "🟡 Medium"
+                        else:
+                            label = "🔴 Low"
+                        st.metric("Confidence", label)
                     else:
                         st.metric("Confidence", "Not applicable")
 
-                if meta.get("formulation_type"):
-                    st.caption(f"Formulation type: {meta['formulation_type']}")
-                
-                if meta.get("abs_required") is not None:
-                    st.info(f"🌿 ABS/Biodiversity compliance: {'Yes' if meta['abs_required'] else 'No'}")
+                # --- Evidence quality banner ---
+                if chunks == 0:
+                    st.error("⚠️ Evidence Quality: No source context retrieved. No legal conclusions can be drawn.")
+                elif not citations:
+                    st.warning("⚠️ Evidence Quality: Insufficient for definitive regulatory conclusions.")
+                else:
+                    st.success(f"✅ Evidence Quality: {len(citations)} claim-level citation(s) extracted.")
 
+                st.divider()
+
+                # --- Formulation Classification ---
+                raw_ft = meta.get("formulation_type")
+                if raw_ft and raw_ft not in ("UNDETERMINED", "INSUFFICIENT_INFO", None):
+                    # Only show a definitive type if confidence is High or Medium
+                    st.caption(f"**Formulation Classification:** {raw_ft.replace('_', ' ').title()}")
+                else:
+                    st.caption("**Formulation Classification:** Undetermined — insufficient evidence for confident classification.")
+
+                # --- ABS / Biodiversity ---
+                abs_val = meta.get("abs_required")
+                conf_lbl = meta.get("confidence_label", "Low")
+                if abs_val is True and conf_lbl == "High":
+                    st.info("🌿 **ABS/Biodiversity:** Applicable — supported by retrieved evidence.")
+                elif abs_val is False and conf_lbl == "High":
+                    st.info("🌿 **ABS/Biodiversity:** Not required based on retrieved evidence.")
+                elif conf_lbl == "Medium":
+                    st.info("🌿 **ABS/Biodiversity:** Assessment Recommended — potential relevance identified but not confirmed.")
+                else:
+                    st.info("🌿 **ABS/Biodiversity:** Further assessment required — insufficient evidence to determine applicability.")
+
+                # --- TK / Prior-Art ---
+                st.caption("**TK/Prior-Art:** Potential consideration; formulation-specific evidence required.")
+
+                # --- Citation Status ---
+                if citations:
+                    st.markdown("**Citations Found:**")
+                    for c in citations:
+                        source_label = c.get("source", "retrieved context")
+                        if c.get("section"):
+                            source_label = f"{source_label}, {c['section']}"
+                        verified = "verified" if c.get("verified") else "unverified"
+                        st.markdown(f"- `{c.get('text', '')}` — *{source_label}* ({verified})")
+                elif intent == "CONVERSATIONAL":
+                    st.info("Retrieval skipped for this conversational message.")
+                elif intent in {"OFF_TOPIC", "BLOCKED"}:
+                    st.info("Retrieval skipped because the query was outside the assistant's scope.")
+                else:
+                    st.caption(f"**Citation Status:** No claim-level citations available. Based on {chunks} retrieved regulatory chunk(s).")
+
+                st.divider()
+
+                # --- ABS Helper (only show if citations support it) ---
+                abs_helper = meta.get("abs_helper")
+                if abs_helper:
+                    abs_status = abs_helper.get("status", "")
+                    abs_steps = abs_helper.get("next_steps", [])
+                    if abs_status == "insufficient_evidence" or not citations:
+                        st.caption("🌿 **ABS Helper:** Insufficient authorized source context. Further assessment required before making any compliance decisions.")
+                    else:
+                        st.markdown("**ABS Helper:**")
+                        st.caption(abs_status)
+                        for step in abs_steps:
+                            st.markdown(f"- {step}")
+
+                # --- TKDL Pointer (only show if citations support it) ---
+                tkdl_pointer = meta.get("tkdl_prior_art_pointer")
+                if tkdl_pointer and tkdl_pointer.get("relevant"):
+                    if not citations:
+                        st.caption("**TKDL / Prior-Art:** Insufficient authorized source context to determine applicability. Formulation-specific evidence required.")
+                    else:
+                        st.markdown("**TKDL / Prior-Art Pointer:**")
+                        st.info(tkdl_pointer.get("pointer", "TKDL-aware prior-art review is recommended."))
+
+                # --- Jurisdiction Answer Sets ---
                 answer_sets = meta.get("jurisdiction_answer_sets")
                 if answer_sets:
                     st.markdown("**Separated Jurisdiction Answer Sets:**")
@@ -242,43 +384,23 @@ for message in st.session_state.messages:
                         with st.expander("Practical next steps"):
                             st.markdown(answer_sets["practical_next_steps"])
 
-                abs_helper = meta.get("abs_helper")
-                if abs_helper:
-                    st.markdown("**ABS Helper:**")
-                    st.caption(abs_helper.get("status", "not_clearly_indicated"))
-                    for step in abs_helper.get("next_steps", []):
-                        st.markdown(f"- {step}")
-
-                tkdl_pointer = meta.get("tkdl_prior_art_pointer")
-                if tkdl_pointer and tkdl_pointer.get("relevant"):
-                    st.markdown("**TKDL / Prior-Art Pointer:**")
-                    st.info(tkdl_pointer.get("pointer", "TKDL-aware prior-art review is recommended."))
-
+                # --- Escalation ---
                 escalation = meta.get("escalation")
                 if escalation:
                     if escalation.get("recommended"):
-                        st.warning(escalation.get("path", "Escalate to a human IP facilitator."))
+                        st.warning(escalation.get("path", "Escalate to a qualified IP attorney or regulatory professional."))
                     else:
                         st.caption(escalation.get("path", "No immediate escalation trigger detected."))
-                
-                citations = meta.get("citations", [])
-                if citations:
-                    st.markdown("**Citations Found:**")
-                    for c in citations:
-                        source_label = c.get("source", "retrieved context")
-                        if c.get("section"):
-                            source_label = f"{source_label}, {c['section']}"
-                        verified = "verified" if c.get("verified") else "unverified"
-                        st.markdown(f"- `{c.get('text', '')}` - *{source_label}* ({verified})")
-                elif intent == "CONVERSATIONAL":
-                    st.info("Retrieval skipped for this conversational message.")
-                elif intent in {"OFF_TOPIC", "BLOCKED"}:
-                    st.info("Retrieval skipped because the query was outside the assistant's scope.")
-                else:
-                    st.info(f"No explicit citations extracted. Based on {chunks} retrieved regulatory chunk(s).")
+
+                # --- Human Review ---
+                st.warning("👨‍⚖️ **Human Review Recommended** before filing, commercialization, export, or benefit-sharing decisions.")
 
 
-if prompt := st.chat_input("Ask about Ayurveda IP, regulatory pathways, ABS, GI, or formulation classification..."):
+# ── Voice transcript injection ──────────────────────────────────────────────
+# If a voice transcript arrived via the sidebar, inject it as the next prompt.
+_voice_prompt = st.session_state.pop("voice_transcript", "") or ""
+
+if prompt := (st.chat_input("Ask about Ayurveda IP, regulatory pathways, ABS, GI, or formulation classification...") or (_voice_prompt if _voice_prompt else None)):
     with logfire.span("💬 User Chat Interaction", user_query=prompt, session_id=st.session_state.session_id):
         
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -339,6 +461,7 @@ if prompt := st.chat_input("Ask about Ayurveda IP, regulatory pathways, ABS, GI,
                 "formulation_type": data.get("formulation_type"),
                 "citations": data.get("citations", []),
                 "confidence_score": data.get("confidence_score"),
+                "confidence_label": data.get("confidence_label"),
                 "abs_required": data.get("abs_required"),
                 "abs_helper": data.get("abs_helper"),
                 "tkdl_prior_art_pointer": data.get("tkdl_prior_art_pointer"),

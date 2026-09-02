@@ -149,6 +149,7 @@ class QueryResponse(BaseModel):
     formulation_type: Optional[str] = None
     citations: List[SourceCitation] = []
     confidence_score: Optional[float] = Field(default=None, ge=0, le=1)
+    confidence_label: Optional[str] = None  # High / Medium / Low — authoritative display label
     abs_required: Optional[bool] = None
     abs_helper: Optional[ABSHelper] = None
     tkdl_prior_art_pointer: Optional[TKDLPriorArtPointer] = None
@@ -381,6 +382,8 @@ def query(request: QueryRequest, http_request: Request):
             answer_text = translated["text"]
             logfire.info(f"Translated answer to {target_language}")
 
+        sanitized = _sanitize_metadata(final_output)
+
         emit_query_event(QueryEvent(
             thread_id=thread_id,
             user_query=query_text,
@@ -392,7 +395,7 @@ def query(request: QueryRequest, http_request: Request):
             llm_latency_ms=0,
             total_latency_ms=total_latency,
             citations_count=len(final_output.get("citations", [])),
-            confidence=final_output.get("confidence_score") or 0.0,
+            confidence=sanitized["confidence_score"],
             abs_required=final_output.get("abs_required"),
             status="SUCCESS"
         ))
@@ -402,12 +405,12 @@ def query(request: QueryRequest, http_request: Request):
             answer=answer_text,
             intent=final_output.get("intent"),
             jurisdiction=final_output.get("jurisdiction"),
-            formulation_type=final_output.get("formulation_type"),
+            formulation_type=sanitized["formulation_type"],
             citations=final_output.get("citations", []),
-            confidence_score=final_output.get("confidence_score"),
-            abs_required=final_output.get("abs_required"),
-            abs_helper=final_output.get("abs_helper"),
-            tkdl_prior_art_pointer=final_output.get("tkdl_prior_art_pointer"),
+            confidence_score=sanitized["confidence_score"],
+            abs_required=sanitized["abs_required"],
+            abs_helper=sanitized["abs_helper"],
+            tkdl_prior_art_pointer=sanitized["tkdl_prior_art_pointer"],
             jurisdiction_answer_sets=final_output.get("jurisdiction_answer_sets"),
             escalation=final_output.get("escalation"),
             thought_process=final_output.get("plan", []),
@@ -415,7 +418,8 @@ def query(request: QueryRequest, http_request: Request):
             sources=final_output.get("documents", []),
             chunks_retrieved=len(final_output.get("documents", [])),
             language=target_language,
-            original_language=original_language if original_language != "en" else None
+            original_language=original_language if original_language != "en" else None,
+            confidence_label=sanitized["confidence_label"],
         )
 
         return resp
@@ -449,6 +453,82 @@ def _optional_enum(enum_cls, value):
         return enum_cls(value)
     except Exception:
         return None
+
+
+def _sanitize_metadata(final_output: dict) -> dict:
+    """
+    Normalizes formulation_type, abs_required, and confidence_score so that
+    the API trust metadata can never contradict the grounded answer.
+
+    Rules:
+    - confidence >= 0.70  → High    → show raw formulation_type; show abs_required as-is
+    - 0.50 <= confidence < 0.70 → Medium → show formulation_type; show abs_required as 'Assessment Recommended'
+    - confidence < 0.50 or INSUFFICIENT_INFO → Low → suppress formulation_type; suppress abs
+    - No citations → cap display confidence label at Medium regardless of score
+    """
+    confidence = final_output.get("confidence_score")
+    formulation_type = final_output.get("formulation_type") or "INSUFFICIENT_INFO"
+    abs_required = final_output.get("abs_required")
+    citations = final_output.get("citations") or []
+
+    # Determine categorical confidence label
+    if confidence is None or formulation_type == "INSUFFICIENT_INFO":
+        conf_label = "Low"
+        conf_value = min(confidence or 0.0, 0.45)  # cap numeric at <50%
+    elif confidence >= 0.70:
+        conf_label = "High"
+        conf_value = confidence
+    elif confidence >= 0.50:
+        conf_label = "Medium"
+        conf_value = confidence
+    else:
+        conf_label = "Low"
+        conf_value = confidence
+
+    # If no claim-level citations, cap at Medium
+    if not citations and conf_label == "High":
+        conf_label = "Medium"
+
+    # Suppress definitive formulation_type when confidence is Low
+    if conf_label == "Low" or formulation_type == "INSUFFICIENT_INFO":
+        safe_formulation_type = "UNDETERMINED"
+    else:
+        safe_formulation_type = formulation_type
+
+    # Normalize abs_required display value based on confidence level
+    if conf_label == "High" and abs_required is True:
+        abs_display = True          # confirmed applicable
+    elif conf_label == "High" and abs_required is False:
+        abs_display = False         # confirmed not required
+    elif conf_label == "Medium" or (conf_label == "High" and abs_required is None):
+        abs_display = None          # assessment recommended
+    else:  # Low
+        abs_display = None          # cannot determine
+
+    # Suppress ABS helper content unless citations support it
+    abs_helper = final_output.get("abs_helper")
+    if not citations and abs_helper:
+        abs_helper = {
+            "status": "insufficient_evidence",
+            "next_steps": ["Insufficient authorized source context to determine applicable ABS requirements. Further assessment is required."]
+        }
+
+    # Suppress TKDL pointer unless citations support it
+    tkdl_pointer = final_output.get("tkdl_prior_art_pointer")
+    if not citations and tkdl_pointer:
+        tkdl_pointer = {
+            "relevant": tkdl_pointer.get("relevant", False),
+            "pointer": "Insufficient authorized source context to determine TKDL/prior-art applicability. Formulation-specific evidence is required."
+        }
+
+    return {
+        "formulation_type": safe_formulation_type,
+        "abs_required": abs_display,
+        "confidence_score": conf_value,
+        "confidence_label": conf_label,
+        "abs_helper": abs_helper,
+        "tkdl_prior_art_pointer": tkdl_pointer,
+    }
 
 
 @app.post("/classify", dependencies=[Depends(rate_limit), Depends(verify_api_key)])

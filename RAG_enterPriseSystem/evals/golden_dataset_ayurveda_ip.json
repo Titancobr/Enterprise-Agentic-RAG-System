@@ -414,6 +414,54 @@
       "expected_jurisdiction": "INDIA",
       "expected_formulation_type": null,
       "expected_abs_required": false
+    },
+    {
+      "id": 26,
+      "domain": "phytopharmaceutical",
+      "question": "I want to launch a highly purified extract of Ashwagandha with clinical trials proving it cures anxiety. Is this a classical Ayurveda medicine?",
+      "reference": "No. A highly purified, standardized botanical extract with specific therapeutic claims supported by clinical trials falls under the Phytopharmaceutical pathway under the Drugs and Cosmetics Rules, not Classical Ayurveda. It requires specific FDA approval, standardization, and extensive clinical data.",
+      "relevant_contexts": [
+        "Phytopharmaceutical: Plant-based drug pathway under D&C Rules. Requires standardization, clinical evidence, and specific FDA approval. Distinct from classical Ayurvedic route."
+      ],
+      "expected_jurisdiction": "INDIA",
+      "expected_formulation_type": "PHYTOPHARMACEUTICAL",
+      "expected_abs_required": true
+    },
+    {
+      "id": 27,
+      "domain": "cosmetic",
+      "question": "Can I sell a turmeric face wash as an Ayurvedic product without clinical trials?",
+      "reference": "If you do not make any therapeutic or disease-curing claims, the product can be classified as a Cosmetic under the Cosmetic Rules. It does not require clinical trials for efficacy, but safety standards apply. You cannot claim it treats acne or skin diseases.",
+      "relevant_contexts": [
+        "Cosmetic: Cosmetic Rules apply. No therapeutic claims allowed."
+      ],
+      "expected_jurisdiction": "INDIA",
+      "expected_formulation_type": "COSMETIC",
+      "expected_abs_required": true
+    },
+    {
+      "id": 28,
+      "domain": "international",
+      "question": "Does the Nagoya Protocol apply to my export of Indian Neem extracts to Germany?",
+      "reference": "Yes, if the genetic resources (Neem) are accessed for utilization. Under the Nagoya Protocol, users in Germany must comply with the Prior Informed Consent (PIC) and Mutually Agreed Terms (MAT) established by India (the provider country). The Indian exporter must first obtain NBA approval under the BD Act for export/commercial utilization.",
+      "relevant_contexts": [
+        "Nagoya Protocol requires users to comply with domestic ABS legislation of the provider country (e.g., PIC and MAT)."
+      ],
+      "expected_jurisdiction": "BOTH",
+      "expected_formulation_type": null,
+      "expected_abs_required": true
+    },
+    {
+      "id": 29,
+      "domain": "edge_case",
+      "question": "I have a capsule with Ashwagandha and Turmeric. What's the regulatory pathway?",
+      "reference": "Based on the provided information, the regulatory pathway cannot be definitively classified. It could be Proprietary Ayurvedic, Food (Ayurveda Aahar), or even Phytopharmaceutical depending on the exact preparation method, purification level, and intended claims. Please provide the exact formulation details and intended use.",
+      "relevant_contexts": [
+        "INSUFFICIENT_INFO: Need more details to classify. Key factors: ingredients, intended use, manufacturing process, reference to classical texts."
+      ],
+      "expected_jurisdiction": "INDIA",
+      "expected_formulation_type": "INSUFFICIENT_INFO",
+      "expected_abs_required": true
     }
   ],
   "guardrails_samples": [

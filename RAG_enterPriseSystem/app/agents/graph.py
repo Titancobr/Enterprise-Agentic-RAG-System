@@ -25,7 +25,7 @@ def route_planner(state: AgentState):
         return "end"
     if intent == "CONVERSATIONAL":
         return "responder"
-    if intent == "FORMULATION_CLASSIFICATION":
+    if intent == "FORMULATION_CLASSIFICATION" or intent == "COMPREHENSIVE":
         return "formulation_classifier"
     return "jurisdiction_router"
 

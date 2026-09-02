@@ -19,6 +19,7 @@ import nest_asyncio
 import pandas as pd
 import streamlit as st
 
+asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 nest_asyncio.apply()
 
 from evals.pipeline import run_pipeline, load_golden_dataset

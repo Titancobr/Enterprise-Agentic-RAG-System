@@ -46,6 +46,7 @@ beautifulsoup4>=4.12.0
 # Streamlit UI
 streamlit>=1.38.0
 requests>=2.32.0
+audio-recorder-streamlit>=0.4.3
 
 langchain-google-genai>=2.0.0
 

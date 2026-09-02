@@ -29,12 +29,13 @@ def planner_node(state: AgentState):
     
     Classify the user's query into EXACTLY ONE of these categories:
     
-    1. REGULATORY_IP - Questions about patents, GI, trademarks, ABS, biodiversity, 
+    1. COMPREHENSIVE - Questions that ask BOTH to classify a product/formulation AND ask about regulatory/IP matters (patents, GI, trademarks, ABS, etc.)
+    2. REGULATORY_IP - Questions ONLY about patents, GI, trademarks, ABS, biodiversity, 
        drug licensing, FSSAI classification, or Indian/international IP frameworks
-    2. FORMULATION_CLASSIFICATION - Questions asking to classify an Ayurvedic product 
+    3. FORMULATION_CLASSIFICATION - Questions ONLY asking to classify an Ayurvedic product 
        or formulation (Classical vs Proprietary vs Phytopharmaceutical vs Food vs Cosmetic)
-    3. CONVERSATIONAL - Greetings, follow-ups using conversation history, general chat
-    4. OFF_TOPIC - Queries unrelated to Ayurveda, IP, or regulatory matters
+    4. CONVERSATIONAL - Greetings, follow-ups using conversation history, general chat
+    5. OFF_TOPIC - Queries unrelated to Ayurveda, IP, or regulatory matters
     
     CONVERSATION HISTORY:
     {history}
@@ -42,7 +43,7 @@ def planner_node(state: AgentState):
     LATEST MESSAGE:
     "{user_message}"
     
-    Output ONLY the category name (REGULATORY_IP, FORMULATION_CLASSIFICATION, 
+    Output ONLY the category name (COMPREHENSIVE, REGULATORY_IP, FORMULATION_CLASSIFICATION, 
     CONVERSATIONAL, or OFF_TOPIC).
     """
     
@@ -53,7 +54,7 @@ def planner_node(state: AgentState):
             except Exception as e:
                 logfire.warning(f"Planner LLM unavailable; using deterministic fallback: {e}")
                 decision = _fallback_intent(user_message)
-            if decision not in {"REGULATORY_IP", "FORMULATION_CLASSIFICATION", "CONVERSATIONAL", "OFF_TOPIC"}:
+            if decision not in {"COMPREHENSIVE", "REGULATORY_IP", "FORMULATION_CLASSIFICATION", "CONVERSATIONAL", "OFF_TOPIC"}:
                 decision = _fallback_intent(user_message)
             logfire.info(f"Intent identified: {decision}")
     
@@ -84,6 +85,15 @@ def planner_node(state: AgentState):
             "plan": ["Intent: Formulation Classification", "Action: Classify product"]
         }
     
+    if decision == "COMPREHENSIVE":
+        return {
+            "current_query": user_message,
+            "intent": "COMPREHENSIVE",
+            "status": "Comprehensive analysis (Classification + Regulatory/IP) required...",
+            "plan": ["Intent: Comprehensive", "Action: Classify product", "Action: RAG Research"]
+        }
+
+    
     return {
         "current_query": user_message,
         "intent": "REGULATORY_IP",
@@ -97,12 +107,19 @@ def _fallback_intent(message: str) -> str:
     simple_intent = _preclassify_simple_message(message)
     if simple_intent:
         return simple_intent
-    if _looks_like_regulatory_ip(text):
+    # Classification MUST be checked before regulatory to avoid
+    # misrouting queries that mention both classification and regulatory terms.
+    is_class = _looks_like_formulation_classification(text)
+    is_reg = _looks_like_regulatory_ip(text)
+    
+    if is_class and is_reg:
+        return "COMPREHENSIVE"
+    if is_class:
+        return "FORMULATION_CLASSIFICATION"
+    if is_reg:
         return "REGULATORY_IP"
     if re.search(r"\b(thanks|thank you|who are you|what can you do)\b", text):
         return "CONVERSATIONAL"
-    if _looks_like_formulation_classification(text):
-        return "FORMULATION_CLASSIFICATION"
     return "OFF_TOPIC"
 
 
@@ -113,14 +130,32 @@ def _preclassify_simple_message(message: str) -> str | None:
         return "CONVERSATIONAL"
     if re.fullmatch(r"(hi|hello|hey|namaste)\s+(there|sakti|ip sakti|assistant)", normalized):
         return "CONVERSATIONAL"
-    if _looks_like_regulatory_ip(normalized):
-        return "REGULATORY_IP"
-    if _looks_like_formulation_classification(normalized):
+    # Classification MUST be checked before regulatory.
+    is_class = _looks_like_formulation_classification(normalized)
+    is_reg = _looks_like_regulatory_ip(normalized)
+    
+    if is_class and is_reg:
+        return "COMPREHENSIVE"
+    if is_class:
         return "FORMULATION_CLASSIFICATION"
+    if is_reg:
+        return "REGULATORY_IP"
     return None
 
 
+def _has_classification_signal(text: str) -> bool:
+    """Return True when the text contains strong formulation-classification intent."""
+    signals = (
+        "classify", "classification", "which pathway", "what pathway",
+        "which category", "what category", "classify it as",
+        "classical or proprietary", "food or drug", "food or cosmetic",
+        "classical proprietary phytopharmaceutical food cosmetic",
+    )
+    return any(s in text for s in signals)
+
+
 def _looks_like_regulatory_ip(text: str) -> bool:
+
     regulatory_terms = (
         "patent", "patentability", "patents act", "section", "ipc",
         "gi", "geographical indication", "trademark", "abs", "biodiversity",
@@ -132,17 +167,24 @@ def _looks_like_regulatory_ip(text: str) -> bool:
 
 
 def _looks_like_formulation_classification(text: str) -> bool:
+    # Explicit classification language — always matches.
     classification_terms = (
         "classify", "classification", "which pathway", "what pathway",
-        "category", "classical or proprietary", "food or drug",
-        "phytopharmaceutical", "ayurveda aahar", "cosmetic product"
+        "which category", "what category", "classify it as",
+        "classical or proprietary", "food or drug", "food or cosmetic",
+        "phytopharmaceutical", "ayurveda aahar", "cosmetic product",
     )
+    if any(term in text for term in classification_terms):
+        return True
+    # Product + pathway language (weaker signal, only without "patent").
     product_terms = (
         "tablet", "capsule", "syrup", "cream", "oil", "supplement",
-        "ingredients", "intended use", "formulation", "product"
+        "ingredients", "intended use", "formulation", "product",
+        "herbal product", "ayurvedic product", "launch",
     )
-    return any(term in text for term in classification_terms) or (
+    pathway_terms = ("classical", "proprietary", "cosmetic", "food", "drug")
+    return (
         any(term in text for term in product_terms)
-        and any(term in text for term in ("classical", "proprietary", "cosmetic", "food", "drug"))
+        and any(term in text for term in pathway_terms)
         and "patent" not in text
     )

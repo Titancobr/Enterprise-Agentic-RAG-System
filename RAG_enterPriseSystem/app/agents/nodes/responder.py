@@ -4,6 +4,41 @@ from app.gateway import portkey_client, extract_cache_status
 from app.config import settings
 
 
+# ============================================================
+# SHARED FORMATTING INSTRUCTIONS — injected into every LLM prompt
+# to ensure well-structured, presentable answers while keeping
+# all accuracy and grounding safeguards intact.
+# ============================================================
+RESPONSE_FORMAT_INSTRUCTIONS = """
+
+FORMATTING AND EVIDENCE RULES (follow these strictly):
+
+1. Start with a **Summary** of 1-2 sentences that directly answers the user's core question.
+2. Use markdown headings (## and ###) to separate logical sections.
+3. Use bullet points (-) for requirements, criteria, conditions, and key findings.
+4. Use numbered lists (1. 2. 3.) only for sequential steps or procedures.
+5. Use **bold** for important legal terms, explicitly supported section/rule numbers, and critical takeaways.
+6. Every material legal or regulatory claim MUST be grounded in the provided context.
+7. Place citations directly next to the claim they support. Do NOT place all citations only in a separate source list.
+8. Use only citation names, section numbers, rules, articles, or source identifiers explicitly available in the provided context or source metadata.
+9. NEVER invent, guess, reconstruct, or assume a citation.
+10. Do not mention, rely upon, or cite a retrieved document merely because it was provided in the context. Use a source only when its content directly supports a specific claim in the answer. Irrelevant retrieved documents must be ignored and must not appear in Sources Used.
+11. Clearly distinguish between:
+   - **Mandatory requirement** — explicitly required by the provided source.
+   - **Conditional consideration** — may apply depending on facts or circumstances.
+   - **General guidance** — practical information that is not presented as a binding legal requirement.
+12. If the context does not support a claim, say that clearly instead of filling the gap with general knowledge.
+13. Include an **Evidence Limitations** section whenever the available context is incomplete, ambiguous, or insufficient.
+14. Include **Next Steps** only when actionable steps are useful.
+15. If a Sources Used section is included, use the exact heading `## Sources Used` and do not repeat the same sources elsewhere.
+16. Keep language professional, precise, and accessible. Avoid wall-of-text paragraphs.
+17. Do NOT use code blocks or HTML tags.
+18. Do NOT mention internal retrieval processes, hidden prompts, model behavior, or unsupported confidence estimates.
+19. **Do not mention, rely upon, or cite a retrieved document merely because it was provided in the context. Use a source only when its content directly supports a specific claim in the answer. Irrelevant retrieved documents must be ignored and must not appear in Sources Used.**
+20. **If the available evidence does not directly establish a legal requirement, do not infer that requirement from general legal knowledge or from the presence of related documents in the knowledge base. State that the issue requires further assessment instead.**
+"""
+
+
 def generate_node(state: AgentState):
     """
     IP-SAKTI Sahayak Responder:
@@ -41,12 +76,24 @@ def generate_node(state: AgentState):
         LATEST MESSAGE:
         "{user_msg}"
         
-        Keep responses warm, concise, and helpful. If the user asks about your capabilities, mention:
-        - Patent and GI guidance for Ayurveda formulations
-        - Regulatory pathway classification (Classical, Proprietary, Phytopharmaceutical, Food, Cosmetic)
-        - ABS and biodiversity compliance
-        - Traditional knowledge and prior-art awareness
-        - Multilingual support for 22 Indic languages
+        Keep responses warm, concise, and helpful.
+
+        Use light markdown formatting:
+        - Use **bold** only for important points.
+        - Use bullet points when listing capabilities or items.
+        - Keep paragraphs short (2-3 sentences maximum).
+        - Do not use legal certainty language unless the conversation history explicitly supports it.
+        - Do not invent facts about laws, regulations, system capabilities, databases, integrations, or services.
+        - If the user asks a factual legal or regulatory question that requires authorized source verification, do not pretend conversational memory is sufficient; indicate that a source-grounded analysis is required.
+
+        If the user asks about your capabilities, present them accurately as a bulleted list:
+        - **Patent & GI guidance** for Ayurveda formulations
+        - **Regulatory pathway classification** (Classical, Proprietary, Phytopharmaceutical, Food, Cosmetic)
+        - **ABS and biodiversity compliance** checks
+        - **Traditional knowledge and prior-art awareness**
+        - **Multilingual support** for 22 Indic languages via Bhashini
+
+        Do not claim to directly search restricted databases, including TKDL, unless such access is actually available and explicitly provided by the system.
         """
         response_text = _generate_response(prompt, state)
         return _build_response(state, response_text, add_disclaimer=False)
@@ -63,13 +110,91 @@ def generate_node(state: AgentState):
         User query:
         "{user_msg}"
         
-        Provide clear, practical guidance:
-        1. Explain what this classification means in simple terms
-        2. Outline the likely regulatory/IP pathway
-        3. Mention any ABS or traditional knowledge considerations
-        4. Suggest what additional information would help refine the classification
-        
-        Do NOT give definitive legal conclusions. Use phrases like "likely pathway" and "typically requires."
+       STRICT CLASSIFICATION AND GROUNDING RULES:
+
+        - Base the classification only on the formulation analysis and facts available in the current state and user query.
+        - Do NOT invent ingredients, intended uses, therapeutic claims, manufacturing details, classical-text references, approvals, or regulatory requirements.
+        - Treat the classification as preliminary unless the available information clearly supports a specific pathway.
+        - Do NOT give a definitive legal or regulatory conclusion when critical information is missing.
+        - Distinguish clearly between what is known, what is inferred from the provided facts, and what requires verification.
+        - Confidence must reflect evidence quality and information completeness.
+        - Do NOT report High confidence when critical formulation, ingredient, intended-use, manufacturing, jurisdiction, or product details are missing.
+        - Do not state that ABS, biodiversity, traditional knowledge, or other compliance obligations definitely apply unless the available facts or context explicitly support that conclusion.
+        - When such issues may be relevant but are not established, use conditional language such as "may require assessment" or "should be evaluated based on the facts."
+        - **Do not discuss patentability, patents, novelty, inventive step, GI, trademarks, or other IP issues unless the user's query explicitly asks about them or they are necessary to answer the classification question. Focus first and primarily on determining the requested regulatory classification.**
+        - **If the available evidence is insufficient to support a specific classification, output "Cannot be determined from the available information" instead of guessing a likely pathway. A Low confidence level does not permit an unsupported classification.**
+
+        Structure your response as follows:
+
+        ## Summary
+        One-line preliminary classification result and what it means in plain language.
+
+        ## Classification Details
+        - **Likely Pathway:** Name and brief explanation based only on the available facts.
+        - **Confidence Level:** High / Medium / Low.
+        - **Basis:** Briefly state which available facts support the classification.
+
+        ## Regulatory Pathway
+        Provide numbered steps the user would typically need to evaluate or follow.
+        Do not present a step as legally mandatory unless that requirement is explicitly supported by the available information.
+
+        ## ABS & Traditional Knowledge Considerations
+        ONLY include this section when the query, formulation facts, or available analysis involve:
+        - Biological resources
+        - Biodiversity
+        - Traditional knowledge
+        - Foreign access
+        - Export
+        - Commercial utilization
+
+        Clearly distinguish between confirmed requirements and issues that may require further assessment.
+
+        If none of these apply, omit this section entirely.
+
+        ## What's Missing
+        List only the additional information genuinely needed to improve classification accuracy.
+
+        Examples may include:
+        - Exact ingredients and composition
+        - Intended use or claims
+        - Manufacturing process
+        - Classical-text reference
+        - Product form
+        - Target jurisdiction
+
+        ## Evidence Limitations
+        Briefly state any important uncertainty or limitation affecting the classification.
+
+        ## Next Steps
+        Provide practical numbered actions only when useful.
+
+        ## Sources Used
+        List the exact source identifiers, section numbers, or document names that materially informed the answer.
+        Use the format: `- <source_name>, <section/rule>`
+        Do NOT duplicate a Sources Used section — include it exactly once.
+
+        Do NOT give definitive legal conclusions. Use phrases such as:
+        - "likely pathway"
+        - "based on the available information"
+        - "may require assessment"
+        - "typically involves"
+        - "requires verification"
+         FINAL SELF-CHECK BEFORE ANSWERING:
+
+        Before producing the final response, silently verify:
+
+        1. Is the classification based only on the available facts?
+        2. Did I invent any ingredients, claims, manufacturing details, or regulatory requirements?
+        3. Does every legal or regulatory statement have support in the available context?
+        4. Did I describe a conditional consideration as a mandatory requirement?
+        5. Is the confidence level justified by the available information?
+        6. Did I clearly identify important missing information?
+        7. Did I avoid giving a definitive legal conclusion where verification is required?
+        8. Did I clearly state evidence limitations when information is incomplete?
+
+        If any answer is "no" or uncertain, revise the response conservatively and remove unsupported claims.
+
+        {RESPONSE_FORMAT_INSTRUCTIONS}
         """
         response_text = _generate_response(prompt, state) + standing_disclaimer
         return _build_response(state, response_text)
@@ -90,37 +215,233 @@ def generate_node(state: AgentState):
         response_text = _safe_abstention_answer(state) + standing_disclaimer
         return _build_response(state, response_text)
 
+    comprehensive_guidance = ""
+    if intent == "COMPREHENSIVE":
+        comprehensive_guidance = f"""
+    The user's query is COMPREHENSIVE. You MUST provide BOTH a Formulation Classification and a Regulatory/IP analysis.
+
+    PRELIMINARY CLASSIFICATION ANALYSIS:
+    - Likely pathway: {formulation_type or 'Unknown'}
+    - ABS/biodiversity compliance may be required: {state.get('abs_required', 'Unknown')}
+    
+    Before the `## Summary` section, include:
+    ## Formulation Classification
+    - **Likely Pathway:** Name and brief explanation based only on the available facts. If the available evidence is insufficient to support a specific classification, output "Cannot be determined from the available information" instead of guessing a likely pathway. A Low confidence level does not permit an unsupported classification.
+    - **Confidence Level:** High / Medium / Low.
+    - **Basis:** Briefly state which available facts support the classification.
+    - **What's Missing:** List only the additional information genuinely needed to improve classification accuracy (e.g., exact ingredients, intended claims, manufacturing process, classical-text reference).
+    """
+
     jurisdiction_note = f"\nJurisdiction scope: {jurisdiction}. " if jurisdiction else ""
     answer_shape = """
     Required structure for BOTH jurisdiction:
-    ## India answer
-    - Give only Indian-law analysis grounded in Indian sources.
-    ## International answer
-    - Give only treaty/international analysis grounded in international sources.
-    ## Practical next steps
-    - Explain what to verify next.
+
+    ## Summary
+    Briefly state what the available context supports for India and/or international analysis.
+    Do not imply that both analyses are complete if the retrieved context supports only one.
+
+    ## India Answer
+    Include this section only when Indian-law sources are available.
+
+    ### Applicable Framework
+    State only frameworks explicitly supported by Indian sources in the context.
+
+    ### Key Provisions
+    Explain only provisions explicitly present in the retrieved Indian context.
+    Attach citations directly to the claims they support.
+
+    ### Requirements and Considerations
+    Clearly distinguish:
+    - Mandatory requirements supported by the source.
+    - Conditional considerations that depend on facts.
+
+    Do not include international rules in this section.
+
+    ## International Answer
+    Include this section only when treaty, foreign-law, or international-framework sources are available.
+
+    ### Applicable Framework
+    State only frameworks explicitly supported by international sources in the context.
+
+    ### Key Provisions
+    Explain only provisions explicitly present in the retrieved international context.
+    Attach citations directly to the claims they support.
+
+    ### Requirements and Considerations
+    Clearly distinguish:
+    - Explicit requirements supported by the international source.
+    - Conditional considerations depending on facts or jurisdiction.
+
+    Do not include Indian-law requirements in this section.
+
+    ## Key Differences
+    Compare India and international frameworks ONLY when both sides are supported by the retrieved context.
+    Do not infer differences from missing information.
+
+    ## Evidence Limitations
+    Explicitly state:
+    - Which jurisdiction lacks sufficient source coverage.
+    - Which issues cannot be answered reliably from the available context.
+    - Which matters require professional verification.
+
+    ## Practical Next Steps
+    Provide a numbered list of practical verification steps.
+    Do not present these steps as statutory requirements unless explicitly supported by the context.
     """ if jurisdiction == "BOTH" else """
     Required structure:
-    - Keep the answer within the selected jurisdiction.
-    - Do not blend India and international rules unless the selected jurisdiction is BOTH.
+
+    - Keep the answer strictly within the selected jurisdiction.
+    - Do not blend Indian and international rules unless the selected jurisdiction is BOTH.
+    - Do not introduce legal frameworks that are absent from the retrieved context.
+
+    ## Summary
+
+    Give a direct 1-2 sentence answer that captures the core finding based only on what the available context supports.
+    Do not overstate certainty. If the context only partially answers the query, reflect that.
+
+    ## Key Requirements
+
+    Use a bulleted list. Each bullet must state the requirement or consideration and include an inline citation
+    in square brackets (e.g., [Section 3(p), Patents Act]) directly next to the claim it supports.
+
+    Only describe something as a **mandatory requirement** when the retrieved source explicitly establishes it.
+    Use labels to distinguish:
+    - **<topic>:** The available context supports… [citation]
+    - **<topic>:** The retrieved sources do not provide enough information to determine…
+
+    Clearly distinguish between:
+    - **Mandatory requirement** — explicitly required by the provided source.
+    - **Conditional consideration** — may apply depending on facts or circumstances.
+    - **General guidance** — practical information not presented as a binding requirement.
+
+    ## Evidence Limitations
+
+    State clearly what the available retrieved sources do NOT cover or cannot confirm.
+    Include:
+    - Missing information or source coverage
+    - Ambiguous or incomplete facts
+    - Questions the context cannot answer reliably
+    - Matters requiring professional verification
+
+    ## Next Steps
+
+    Provide a numbered list of practical actions only when useful.
+    Do not label general recommendations as mandatory legal requirements unless explicitly supported by the retrieved context.
+
+    ## Sources Used
+
+    List the exact source identifiers, section numbers, or document names that materially informed the answer.
+    Use the format: `- <source_name>, <section/rule>`
+    Do NOT duplicate a Sources Used section — include it exactly once.
     """
 
     prompt = f"""
     You are IP-SAKTI Sahayak, an AI assistant specializing in Ayurveda intellectual property and regulatory guidance.
     
-    INSTRUCTIONS:
-    - Answer based ONLY on the provided LEGAL/REGULATORY CONTEXT
-    - Cite specific sections, rules, or articles when making claims
-    - Use bracketed citations like [Section 3(p), Patents Act] when referencing sources
-    - If the answer is not in the context, say so clearly
-    - For international queries, distinguish Indian law from other frameworks
-    - Do NOT mix domestic Indian and international law inappropriately
-    - If context is empty, state that clearly and provide general guidance only
-    - Include an ABS/compliance note when biological resources, traditional knowledge, export, foreign access, or commercial utilization are involved
-    - Include a TKDL/prior-art pointer when patents, novelty, traditional knowledge, or classical formulations are involved; do not claim to search TKDL
-    - Include a human escalation note when facts are incomplete, confidence is low, foreign filing is involved, or a legal decision is needed
+    ACCURACY, GROUNDING, AND ANTI-HALLUCINATION INSTRUCTIONS (NON-NEGOTIABLE):
+
+    SOURCE-OF-TRUTH RULES:
+    - The provided LEGAL/REGULATORY CONTEXT is the primary source of truth for factual legal and regulatory claims.
+    - Answer factual legal or regulatory questions ONLY to the extent supported by the provided context.
+    - Do NOT use outside legal knowledge to fill gaps in the retrieved context.
+    - Do NOT assume that a retrieved document is relevant merely because it appears in the context.
+    - Use only information from a source when that source actually supports the specific claim being made.
+
+    NO-HALLUCINATION RULES:
+    - NEVER invent, guess, reconstruct, or assume:
+    - Section numbers
+    - Rule numbers
+    - Articles
+    - Case citations
+    - Legal requirements
+    - Regulatory approvals
+    - Filing obligations
+    - Deadlines
+    - Penalties
+    - Government procedures
+    - Source names
+    - NEVER present general knowledge as if it came from the provided knowledge base.
+    - NEVER convert a possibility into a certainty.
+    - NEVER state that something "must," "is required," or "is mandatory" unless the provided context explicitly supports that level of certainty.
+    - If the context is silent, incomplete, conflicting, or ambiguous, say so clearly.
+    - **If the available evidence does not directly establish a legal requirement, do not infer that requirement from general legal knowledge or from the presence of related documents in the knowledge base. State that the issue requires further assessment instead.**
+
+    CLAIM-LEVEL EVIDENCE RULES:
+    - Every material legal or regulatory claim should be traceable to the provided context.
+    - Place citations immediately after, or within, the claim they support.
+    - Do NOT place all citations only at the end of the answer.
+    - Do NOT cite a source unless it directly supports the claim.
+    - **Do not mention, rely upon, or cite a retrieved document merely because it was provided in the context. Use a source only when its content directly supports a specific claim in the answer. Irrelevant retrieved documents must be ignored and must not appear in Sources Used.**
+    - Only use citation identifiers, section numbers, rule numbers, articles, or source names explicitly available in the retrieved context or source metadata.
+    - If exact citation metadata is unavailable, do not invent it.
+    - Never fabricate a citation to make an answer appear more authoritative.
+
+    LEGAL PRECISION RULES:
+    - Clearly distinguish between:
+    1. **Confirmed requirement** — explicitly established by the provided source.
+    2. **Conditional consideration** — may apply depending on the facts.
+    3. **General procedural guidance** — practical guidance that is not presented as a binding legal requirement.
+    - Use conditional wording where appropriate:
+    - "may apply"
+    - "may require assessment"
+    - "depends on the facts"
+    - "the available context indicates"
+    - "requires verification"
+    - Do not overstate legal consequences.
+
+    RETRIEVAL LIMITATION RULES:
+    - If the required answer is not supported by the context, explicitly say:
+    "The available retrieved sources do not provide enough information to answer this point reliably."
+    - Do not compensate for missing context by guessing.
+    - If retrieved sources appear unrelated to the user's question, do not rely on them merely to produce an answer.
+    - Prefer a limited but accurate answer over a comprehensive but unsupported answer.
+
+    JURISDICTION RULES:
+    - Keep Indian-law analysis strictly grounded in Indian sources.
+    - Keep international analysis strictly grounded in treaty, international, or foreign-framework sources.
+    - Do NOT mix Indian and international law.
+    - If the selected jurisdiction is BOTH, analyze each jurisdiction separately.
+    - If source coverage exists for only one jurisdiction, clearly state that the other jurisdiction lacks sufficient source support.
+
+    ABS / BIODIVERSITY RULES:
+    - Include ABS, biodiversity, benefit-sharing, biological-resource, or associated traditional-knowledge discussion ONLY when the query or retrieved context makes it relevant.
+    - Do NOT state that ABS definitely applies unless the provided context supports that conclusion.
+    - When relevance is possible but unconfirmed, state that an ABS or biodiversity assessment may be required depending on the facts.
+
+    TKDL / PRIOR-ART RULES:
+    - Include TKDL or prior-art discussion ONLY when patents, novelty, traditional knowledge, prior art, or classical formulations are relevant.
+    - Do NOT claim to search, access, query, or verify the restricted TKDL database directly.
+    - You may recommend appropriate prior-art or TKDL-aware verification only when relevant.
+
+    HUMAN ESCALATION RULES:
+    - Recommend professional verification when:
+    - Important facts are missing.
+    - Source coverage is insufficient.
+    - The answer involves a legal decision.
+    - Foreign filing or cross-border activity is involved.
+    - The available evidence is ambiguous.
+    - Do not imply that professional escalation confirms the legal conclusion.
+
+    SOURCE LIST RULES:
+    - If a `## Sources Used` section is included, list only sources that materially informed the answer.
+    - Do not duplicate the Sources Used section.
+    - Do not repeat the same source list elsewhere.
+    - A source list supplements claim-level citations; it does not replace them.
+
+    ANSWER QUALITY PRIORITY:
+    1. Accuracy
+    2. Grounding in the provided knowledge base
+    3. Correct legal certainty
+    4. Clear evidence limitations
+    5. Useful structure and readability
+
+    When accuracy conflicts with completeness, choose accuracy.
+    When evidence conflicts with assumption, choose evidence.
+    When the context is insufficient, abstain from unsupported conclusions.
     {jurisdiction_note}
+    {comprehensive_guidance}
     {answer_shape}
+    {RESPONSE_FORMAT_INSTRUCTIONS}
     
     LEGAL/REGULATORY CONTEXT:
     {full_context}
@@ -130,9 +451,7 @@ def generate_node(state: AgentState):
     
     USER QUESTION:
     "{user_msg}"
-    
-    Provide a clear, accurate, and source-cited answer.
-    """
+"""
 
     response_text = _ensure_source_summary(_generate_response(prompt, state), documents) + standing_disclaimer
     return _build_response(state, response_text)
@@ -202,55 +521,133 @@ def _grounded_template_answer(state: AgentState) -> str:
 
     if intent == "CONVERSATIONAL":
         return (
-            "Hello, I am IP-SAKTI Sahayak. I can help with Ayurveda patentability, "
-            "GI protection, ABS and biodiversity compliance, FSSAI or AYUSH pathways, "
-            "and source-cited regulatory guidance."
+            "Hello! I am **IP-SAKTI Sahayak**, your AI assistant for Ayurveda IP and regulatory guidance.\n\n"
+            "I can help you with:\n"
+            "- **Patentability analysis** for Ayurveda formulations\n"
+            "- **GI protection** guidance\n"
+            "- **ABS and biodiversity compliance** checks\n"
+            "- **FSSAI / AYUSH pathway** navigation\n"
+            "- **Source-cited regulatory guidance** grounded in authorized legal texts\n\n"
+            "Feel free to ask your question!"
         )
 
-    if intent == "FORMULATION_CLASSIFICATION":
+    if intent in ("FORMULATION_CLASSIFICATION", "COMPREHENSIVE"):
         formulation_type = state.get("formulation_type") or "INSUFFICIENT_INFO"
         guidance = _get_formulation_guidance(formulation_type)
         abs_text = state.get("abs_required")
-        return (
-            f"Likely pathway: {formulation_type}. {guidance}\n\n"
-            f"ABS/biodiversity compliance indicator: {abs_text if abs_text is not None else 'needs more information'}.\n\n"
-            "This is a preliminary classification. Ingredients, intended use, claims, manufacturing process, "
-            "and any classical-text reference would help refine it."
+        abs_display = "may require further assessment depending on the biological resources, sourcing, and commercial use." if abs_text or abs_text is None else "does not appear to be mandatory based on the provided facts."
+        
+        formulation_output = (
+            "## Formulation Classification\n\n"
+            "- **Likely Pathway:** Cannot be determined from the available information.\n"
+            "- **Confidence Level:** Low.\n"
+            "- **Basis:** The available facts identify ingredients and general positioning, but do not establish the exact formulation, classical-text basis, dosage, manufacturing method, or applicable product claims.\n\n"
+            "## What's Missing\n\n"
+            "- Exact formulation and composition\n"
+            "- Intended claims and labeling\n"
+            "- Classical Ayurvedic text reference, if applicable\n"
+            "- Manufacturing process\n"
+            "- Product dosage and presentation\n\n"
         )
+        
+        if intent == "FORMULATION_CLASSIFICATION":
+            return (
+                "## Summary\n\n"
+                "Based on the available information, the product **cannot yet be confidently classified** as Classical Ayurvedic, Proprietary Ayurvedic, Phytopharmaceutical, Food, or Cosmetic. The available facts are insufficient to determine a reliable regulatory pathway.\n\n"
+                + formulation_output +
+                "## ABS & Traditional Knowledge Considerations\n\n"
+                f"Because the product involves traditionally known herbs, traditional-knowledge and biodiversity considerations {abs_display}\n\n"
+                "## Evidence Limitations\n\n"
+                "The available information does not establish enough facts to make a definitive regulatory classification.\n\n"
+                "## Next Steps\n\n"
+                "1. Provide the complete ingredient list and quantities.\n"
+                "2. Identify whether the formulation appears in an authoritative classical Ayurvedic text.\n"
+                "3. Specify the intended product claims and target market.\n"
+                "4. Verify the classification against the applicable regulatory framework."
+            )
+        else:
+            # For COMPREHENSIVE, prepend it to the regular RAG fallback (which is insufficient source context)
+            return (
+                formulation_output +
+                "\n\n## Regulatory/IP Analysis — Evidence Limitation\n\n"
+                "No sufficiently relevant authorized source context was retrieved for the regulatory/IP aspects of this query. "
+                "Therefore, the system cannot provide a grounded conclusion on patentability, ABS obligations, trademark protection, GI protection, or other legal requirements.\n\n"
+                "## Information Needed for Further Analysis\n\n"
+                "- Exact product formulation and intended use\n"
+                "- The specific IP or regulatory issue to be assessed\n"
+                "- Target jurisdiction\n"
+                "- Ingredient sourcing and commercial-use details, where relevant\n\n"
+                "## Recommended Next Steps\n\n"
+                "1. Provide the missing formulation and product information.\n"
+                "2. Specify the target jurisdiction.\n"
+                "3. Ask the relevant IP and regulatory questions separately if a detailed analysis is required.\n"
+                "4. Obtain professional advice from a **qualified IP attorney or regulatory professional** before making patent filing, commercialization, export, or benefit-sharing decisions."
+            )
 
     if not documents:
         return (
-            "I could not retrieve authorized source context for this query right now. "
-            "For Ayurveda IP or regulatory questions, please ask with the relevant statute, product type, "
-            "ingredient, or jurisdiction so I can ground the answer in the approved corpus."
+            "## ⚠️ No Source Context Available\n\n"
+            "No sufficiently relevant authorized source context was retrieved for this query. "
+            "I cannot provide a grounded legal or regulatory answer without source support.\n\n"
+            "## Information Needed for Further Analysis\n\n"
+            "- Exact product formulation and intended use\n"
+            "- The specific IP or regulatory issue to be assessed\n"
+            "- Target jurisdiction\n"
+            "- Ingredient sourcing and commercial-use details, where relevant\n\n"
+            "Please consult a **qualified IP attorney or regulatory professional** before making high-impact decisions."
         )
 
     source_lines = _source_lines(documents)
     if "ipc25" in query or "ipc 25" in query or "section 25" in query:
         return (
-            "If by “IPC25” you mean Section 25 in the Indian patents context, it is relevant to patent opposition. "
-            "For Ayurveda or biological-resource inventions, the bundled source notes that failure to disclose "
-            "biological material or associated traditional knowledge can become a ground for opposition under "
-            "Section 25 and revocation under Section 64.\n\n"
-            "In practical terms, an Ayurveda patent application should disclose the geographical origin of biological "
-            "material, associated traditional knowledge if any, and ABS or prior-informed-consent arrangements where applicable.\n\n"
-            f"Sources used:\n{source_lines}"
+            "## Summary\n\n"
+            "**Section 25** of the Indian Patents Act relates to **patent opposition** and is highly relevant to Ayurveda/biological-resource inventions.\n\n"
+            "## Key Requirements\n\n"
+            "- **Patent opposition:** Failure to disclose biological material or associated traditional knowledge can be a ground for opposition. [Section 25, Patents Act]\n"
+            "- **Revocation:** Non-disclosure may also lead to revocation proceedings. [Section 64, Patents Act]\n"
+            "- **Geographical origin:** The source and geographical origin of biological material should be disclosed.\n"
+            "- **Traditional knowledge:** Associated traditional knowledge, if any, must be identified.\n"
+            "- **ABS compliance:** Prior-informed-consent and benefit-sharing arrangements may be required where applicable.\n\n"
+            "## Evidence Limitations\n\n"
+            "The available retrieved sources cover opposition and revocation grounds but may not address all procedural filing requirements or jurisdiction-specific variations.\n\n"
+            "## Next Steps\n\n"
+            "1. Review the specific patent application for disclosure completeness.\n"
+            "2. Verify ABS and prior-informed-consent status for any biological resources used.\n"
+            "3. Consult a qualified IP attorney for opposition or revocation risk assessment.\n\n"
+            f"## Sources Used\n\n{source_lines}"
         )
 
     if "ipc" in query:
         return (
-            "In this Ayurveda IP assistant, “IPC” may refer either to patent classification language or to a shorthand "
-            "for an Indian patent-law provision. The retrieved authorized context supports guidance on patentability, "
-            "traditional knowledge, and biological-source disclosure, but it does not define a standalone term called “IPC” clearly.\n\n"
-            f"Sources used:\n{source_lines}"
+            "## Summary\n\n"
+            "In this Ayurveda IP context, “IPC” may refer to **patent classification language** or a shorthand for an **Indian patent-law provision**.\n\n"
+            "## Key Requirements\n\n"
+            "- **Patentability:** The available context supports guidance on patentability of Ayurveda formulations.\n"
+            "- **Traditional knowledge:** Disclosure requirements for traditional knowledge are addressed in the retrieved sources.\n"
+            "- **Biological-source disclosure:** Obligations regarding source and origin of biological material are covered.\n\n"
+            "## Evidence Limitations\n\n"
+            "The retrieved context does not define a standalone term called “IPC” clearly. The applicable provisions depend on the specific section or classification intended.\n\n"
+            "## Next Steps\n\n"
+            "1. Clarify whether “IPC” refers to a specific section of the Patents Act or to an international patent classification.\n"
+            "2. Provide the exact section number or classification code for a targeted analysis.\n\n"
+            f"## Sources Used\n\n{source_lines}"
         )
 
     return (
-        "Based on the authorized retrieved context, Ayurveda formulations documented as traditional knowledge can face "
-        "a patentability bar, while novel processes or genuinely new proprietary formulations may require separate novelty, "
-        "inventive-step, licensing, and ABS checks. For biological resources or traditional knowledge, disclose source/origin "
-        "and compliance status in the patent workflow.\n\n"
-        f"Sources used:\n{source_lines}"
+        "## Summary\n\n"
+        "Ayurveda formulations documented as traditional knowledge may face a **patentability bar**, while novel processes or genuinely new proprietary formulations may be patentable.\n\n"
+        "## Key Requirements\n\n"
+        "- **Novelty and inventive step:** Must be demonstrated for patent eligibility.\n"
+        "- **Licensing:** Licensing under the appropriate AYUSH pathway is typically required.\n"
+        "- **ABS checks:** Apply when biological resources or traditional knowledge are involved.\n"
+        "- **Source/origin disclosure:** Compliance status must be documented in the patent workflow.\n\n"
+        "## Evidence Limitations\n\n"
+        "The available retrieved sources provide general patentability and compliance guidance but do not address the specifics of any particular formulation, ingredient, or intended use.\n\n"
+        "## Next Steps\n\n"
+        "1. Provide the exact formulation and intended use.\n"
+        "2. Identify whether the formulation is classical or proprietary.\n"
+        "3. Conduct a formulation-specific prior-art and regulatory review.\n\n"
+        f"## Sources Used\n\n{source_lines}"
     )
 
 
@@ -272,18 +669,25 @@ def _source_lines(documents: list[str]) -> str:
 
 
 def _ensure_source_summary(answer: str, documents: list[str]) -> str:
-    if not documents:
-        return answer
-    if "sources used:" in answer.lower():
-        return answer
-    return f"{answer}\n\nSources used:\n{_source_lines(documents)}"
+    # Do NOT automatically append all retrieved documents. The LLM must filter out irrelevant ones.
+    return answer
 
 
 def _safe_abstention_answer(state: AgentState) -> str:
     return (
-        "I could not retrieve authorized source context for this question, so I should not give a legal or regulatory answer as if it were grounded.\n\n"
-        "Please retry after corpus ingestion is available, or narrow the query by adding the statute, rule, product type, ingredient, registry record, case, or jurisdiction you want checked.\n\n"
-        "Escalation: take this to a human IP facilitator or qualified IP/regulatory professional before making a filing, commercialization, export, or ABS decision."
+        "## ⚠️ Insufficient Source Context\n\n"
+        "No sufficiently relevant authorized source context was retrieved for this question. "
+        "I cannot provide a grounded legal or regulatory answer without source support.\n\n"
+        "## Information Needed for Further Analysis\n\n"
+        "- Exact product formulation and intended use\n"
+        "- The specific IP or regulatory issue to be assessed\n"
+        "- Target jurisdiction\n"
+        "- Ingredient sourcing and commercial-use details, where relevant\n\n"
+        "## Recommended Next Steps\n\n"
+        "1. Provide the missing formulation and product information.\n"
+        "2. Specify the target jurisdiction.\n"
+        "3. Ask the relevant IP and regulatory questions separately if a detailed analysis is required.\n"
+        "4. Obtain professional advice from a **qualified IP attorney or regulatory professional** before making patent filing, commercialization, export, or benefit-sharing decisions."
     )
 
 
@@ -298,14 +702,53 @@ def _split_jurisdiction_answer_sets(content: str, jurisdiction: str | None) -> d
             "india": content,
             "international": "International analysis was not separately generated; rerun with an explicit international query.",
         }
+
+    # Locate all section boundaries
     india_start = lower.find(india_marker)
     intl_start = lower.find(intl_marker)
+    key_diff_start = lower.find("## key differences")
+    evidence_lim_start = lower.find("## evidence limitations")
     next_steps_start = lower.find("## practical next steps")
+
+    # Build an ordered list of known section boundaries after intl_start
+    post_intl_boundaries = sorted(
+        pos for pos in [key_diff_start, evidence_lim_start, next_steps_start]
+        if pos > intl_start and pos != -1
+    )
+
+    # India text: from india_marker to intl_marker
     india_text = content[india_start:intl_start].strip()
-    intl_end = next_steps_start if next_steps_start != -1 else len(content)
+
+    # International text: from intl_marker to the next known section (or end)
+    intl_end = post_intl_boundaries[0] if post_intl_boundaries else len(content)
     international_text = content[intl_start:intl_end].strip()
+
+    # Key Differences section
+    key_differences = ""
+    if key_diff_start != -1:
+        kd_boundaries = sorted(
+            pos for pos in [evidence_lim_start, next_steps_start]
+            if pos > key_diff_start and pos != -1
+        )
+        kd_end = kd_boundaries[0] if kd_boundaries else len(content)
+        key_differences = content[key_diff_start:kd_end].strip()
+
+    # Evidence Limitations section
+    evidence_limitations = ""
+    if evidence_lim_start != -1:
+        el_end = next_steps_start if next_steps_start != -1 and next_steps_start > evidence_lim_start else len(content)
+        evidence_limitations = content[evidence_lim_start:el_end].strip()
+
+    # Practical Next Steps section
     practical = content[next_steps_start:].strip() if next_steps_start != -1 else ""
-    return {"india": india_text, "international": international_text, "practical_next_steps": practical}
+
+    return {
+        "india": india_text,
+        "international": international_text,
+        "key_differences": key_differences,
+        "evidence_limitations": evidence_limitations,
+        "practical_next_steps": practical,
+    }
 
 
 def _derive_abs_helper(state: AgentState, content: str) -> dict:
