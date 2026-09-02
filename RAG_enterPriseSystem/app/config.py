@@ -15,9 +15,31 @@ class Settings:
 
     # --- REASONING ENGINE (GROQ) ---
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "mixtral-8x7b-32768")  # Default to a free model
-    GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama2-70b-4096")
-    GROQ_GUARDRAIL_MODEL = os.getenv("GROQ_GUARDRAIL_MODEL", "mixtral-8x7b-32768")  # Fast model for guardrails
+    GROQ_API_KEYS_RAW = os.getenv("GROQ_API_KEYS", "")
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.1-8b-instant")
+    GROQ_GUARDRAIL_MODEL = os.getenv("GROQ_GUARDRAIL_MODEL", "llama-3.1-8b-instant")
+
+    @property
+    def groq_key_list(self) -> list[str]:
+        keys = []
+        if self.GROQ_API_KEYS_RAW:
+            keys.extend([k.strip() for k in self.GROQ_API_KEYS_RAW.split(",") if k.strip()])
+        if self.GROQ_API_KEY:
+            for k in self.GROQ_API_KEY.split(","):
+                k_clean = k.strip()
+                if k_clean and k_clean not in keys:
+                    keys.append(k_clean)
+        fb_key = os.getenv("GROQ_FALLBACK_API_KEY")
+        if fb_key and fb_key.strip() and fb_key.strip() not in keys:
+            keys.append(fb_key.strip())
+        for i in range(1, 10):
+            k = os.getenv(f"GROQ_API_KEY_{i}")
+            if k and k.strip() and k.strip() not in keys:
+                keys.append(k.strip())
+        # Filter out placeholder keys
+        valid_keys = [k for k in keys if not k.startswith("your_")]
+        return valid_keys
 
     # --- LLM GATEWAY (PORTKEY) ---
     PORTKEY_API_KEY = os.getenv("PORTKEY_API_KEY")

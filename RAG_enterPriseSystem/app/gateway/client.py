@@ -65,6 +65,18 @@ class OfflineLangChainLLM:
         return _OfflineMessage("SAFE")
 
 
+_key_index = 0
+
+def get_next_groq_api_key() -> str | None:
+    global _key_index
+    keys = settings.groq_key_list
+    if not keys:
+        return None
+    key = keys[_key_index % len(keys)]
+    _key_index += 1
+    return key
+
+
 def _build_chat_client():
     """
     Prefer Portkey for the live gateway path; fall back to direct Groq for
@@ -79,9 +91,10 @@ def _build_chat_client():
             request_timeout=20,
             max_retries=0,
         )
-    if settings.GROQ_API_KEY and not settings.GROQ_API_KEY.startswith("your_") and Groq:
-        logfire.warning("PORTKEY_API_KEY not set; using direct Groq chat client.")
-        return Groq(api_key=settings.GROQ_API_KEY, timeout=20, max_retries=0)
+    key = get_next_groq_api_key()
+    if key and Groq:
+        logfire.info(f"Using Groq chat client with key pool ({len(settings.groq_key_list)} key(s) configured).")
+        return Groq(api_key=key, timeout=20, max_retries=0)
     logfire.warning("No LLM gateway credentials/client available; using offline fallback client.")
     return OfflineChatClient()
 
@@ -91,13 +104,14 @@ portkey_client = _build_chat_client()
 
 def get_langchain_llm(feature: str = "rag") -> ChatGroq:
     """
-    Returns a direct Groq-backed ChatGroq.
+    Returns a direct Groq-backed ChatGroq using key rotation.
     """
-    if not ChatGroq or not settings.GROQ_API_KEY or settings.GROQ_API_KEY.startswith("your_"):
+    key = get_next_groq_api_key()
+    if not ChatGroq or not key:
         logfire.warning(f"LangChain Groq unavailable for {feature}; using offline deterministic fallback.")
         return OfflineLangChainLLM()
     return ChatGroq(
-        groq_api_key=settings.GROQ_API_KEY,
+        groq_api_key=key,
         model=settings.GROQ_MODEL,
         temperature=0,
         request_timeout=20,
