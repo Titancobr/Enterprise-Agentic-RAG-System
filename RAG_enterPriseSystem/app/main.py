@@ -208,7 +208,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # HEALTH & READINESS
 # ============================================================
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
     return {"status": "healthy", "service": "ip-sakti-sahayak"}
 
@@ -259,7 +259,7 @@ async def readiness_check():
 # CORE ENDPOINTS
 # ============================================================
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def home():
     return {
         "message": "IP-SAKTI Sahayak API is live.",
