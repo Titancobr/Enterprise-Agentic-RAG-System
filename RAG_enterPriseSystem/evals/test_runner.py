@@ -393,7 +393,8 @@ with tab_run:
                 return "background-color: #fff3cd"
             return "background-color: #f8d7da"
 
-        styled = df_show.style.applymap(_color_kw, subset=["keyword_score"])
+        apply_style = getattr(df_show.style, "map", getattr(df_show.style, "applymap", None))
+        styled = apply_style(_color_kw, subset=["keyword_score"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         # Download
@@ -550,7 +551,8 @@ with tab_ragas:
                 avg = df_metric[metric_name].mean()
                 label = "✅ Good" if avg >= 0.75 else "⚠️ Fair" if avg >= 0.5 else "❌ Poor"
                 st.markdown(f"**{metric_name.replace('_', ' ').title()}** — AVG: {_badge(avg)} `{avg:.2f}` {label}")
-                styled = df_metric.style.applymap(_color_score, subset=[metric_name]).format({metric_name: "{:.3f}"})
+                apply_metric_style = getattr(df_metric.style, "map", getattr(df_metric.style, "applymap", None))
+                styled = apply_metric_style(_color_score, subset=[metric_name]).format({metric_name: "{:.3f}"})
                 st.dataframe(styled, use_container_width=True, hide_index=True)
                 st.divider()
 

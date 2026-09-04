@@ -59,8 +59,10 @@ def get_all_documents() -> list[dict]:
     """
     all_docs: list[dict] = []
     try:
+        if not QdrantClient:
+            raise RuntimeError("qdrant-client package is not installed")
         if client is None:
-            raise RuntimeError("qdrant-client is not installed")
+            raise RuntimeError("Qdrant cloud credentials not configured in environment (QDRANT_CLUSTER_ENDPOINT / QDRANT_API_KEY)")
         offset = None
         while True:
             response = client.scroll(
@@ -89,7 +91,7 @@ def get_all_documents() -> list[dict]:
 
         logfire.info(f"📚 Loaded {len(all_docs)} documents from Qdrant for BM25 index.")
     except Exception as e:
-        logfire.error(f"❌ Failed to load documents for BM25: {e}")
+        logfire.info(f"ℹ️ Qdrant cloud sync skipped: {e} — loading local authorized legal corpus.")
     if not all_docs:
         all_docs = load_local_legal_documents()
     return all_docs
