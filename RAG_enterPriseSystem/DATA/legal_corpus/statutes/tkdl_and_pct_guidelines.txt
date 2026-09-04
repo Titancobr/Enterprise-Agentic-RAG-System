@@ -1,0 +1,23 @@
+SOURCE: Traditional Knowledge Digital Library (TKDL) and Patent Cooperation Treaty (PCT) Guidelines
+SECTION: PCT Articles 3-11, WIPO GRATK Treaty 2024 Articles 3-7
+URL: https://www.tkdl.res.in/
+VERSION_DATE: 2024-05-24
+JURISDICTION: BOTH
+CATEGORY: patent
+LANGUAGE: en
+
+Traditional Knowledge Digital Library (TKDL) and International Patent Filings (PCT / WIPO GRATK)
+
+1. TKDL as Prior Art in Patent Offices:
+The Traditional Knowledge Digital Library (TKDL) is a pioneering database containing digitized public-domain traditional knowledge from classical Indian texts (Ayurveda, Unani, Siddha, Yoga). Through Access Agreements, major patent offices worldwide—including the USPTO, European Patent Office (EPO), and Japan Patent Office (JPO)—use TKDL as prior art during patent examination. If a patent claim covers known formulations or uses documented in TKDL, the claim is rejected for lack of novelty and inventive step, effectively preventing biopiracy.
+
+2. International Filings via the Patent Cooperation Treaty (PCT):
+An Indian applicant seeking patent protection abroad (e.g., in the US, Europe, Japan) can file a single PCT international application with the Indian Patent Office (IPO) acting as the Receiving Office. The PCT application designates member states (US, EP, JP). Applicants must disclose the origin of biological resources and associated traditional knowledge.
+
+3. Differences Between Indian and US/EPO Patent Systems:
+- India has an explicit statutory bar under Section 3(p) for traditional knowledge and mandatory Form 18A biological source disclosure.
+- The US and EPO examine prior art including TKDL, but have different standards regarding method-of-treatment claims (which are excluded in India under Section 3(i) but accepted in the US).
+- An invention based on traditional formulations that is rejected in India under Section 3(p) will still face novelty/obviousness rejections internationally if cited against TKDL prior art.
+
+4. WIPO GRATK Treaty 2024:
+Adopted in May 2024, the WIPO Treaty on Intellectual Property, Genetic Resources and Associated Traditional Knowledge establishes a mandatory international disclosure obligation. Patent applicants globally must disclose the country of origin of genetic resources and Indigenous peoples or local communities providing associated traditional knowledge.

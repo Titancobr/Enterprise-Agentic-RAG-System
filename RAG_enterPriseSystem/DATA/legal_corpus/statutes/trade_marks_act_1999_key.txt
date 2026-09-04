@@ -1,0 +1,20 @@
+SOURCE: Trade Marks Act, 1999
+SECTION: 9, 11, 18
+URL: https://ipindia.gov.in/trade-marks.htm
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: trademark
+LANGUAGE: en
+
+Trade Marks Act, 1999 — Protection of Ayurvedic Product Names and Brands
+
+1. Registrability of Ayurvedic Product Names:
+Under the Trade Marks Act 1999, you can register a trademark for an Ayurvedic product name, brand, or logo. The mark must be distinctive and capable of distinguishing goods or services of one enterprise from those of others.
+
+2. Grounds for Refusal (Section 9):
+- Generic or Descriptive Names: Generic Ayurvedic terms and botanical names (e.g., "Ashwagandha", "Triphala", "Churna", "Rasayana") cannot be trademarked for products containing those ingredients because they are descriptive of the goods or common to trade.
+- Distinctive & Coined Names: Coined or fanciful Sanskrit and herbal names that are distinctive and not directly descriptive of the product's composition, quality, or intended purpose can be registered.
+- Public Domain & Deceptive Marks: Marks that deceive the public about geographic origin or nature of the Ayurvedic medicine are barred.
+
+3. International Registration:
+Indian brand owners can protect Ayurvedic trademarks internationally across multiple jurisdictions using the Madrid System (Madrid Protocol) administered by WIPO, filing through the Indian Trademark Registry.

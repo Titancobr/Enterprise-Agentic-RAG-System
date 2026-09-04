@@ -1,0 +1,20 @@
+SOURCE: Drugs and Cosmetics Rules, 1945
+SECTION: Rule 158B, Schedule T
+URL: https://ayush.gov.in/
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: formulation_classification
+LANGUAGE: en
+
+Drugs and Cosmetics Rules, 1945 — Rule 158B: Licensing of Patent or Proprietary Ayurvedic Medicines
+
+1. Classification of Proprietary Ayurvedic Medicine:
+A formulation that contains Ayurvedic ingredients mentioned in authoritative books specified in the First Schedule but is prepared in a modified composition, new combination, or modern dosage form (such as tablet, capsule, syrup instead of classical churna or kwatha) is classified as a Patent or Proprietary Ayurvedic Medicine.
+
+2. Evidence Requirements for Licensing under Rule 158B:
+Rule 158B specifies the evidentiary requirements for obtaining a manufacturing license from the State AYUSH Licensing Authority:
+- Classical Ingredients with Published Literature: For traditional ingredients used in combinations, published safety and efficacy literature or documented references in authoritative books are required.
+- New Combinations / Modified Forms: When known ingredients are combined in new ratios or modern dosage forms, proof of safety (acute and sub-acute toxicity studies) is mandatory.
+- New Therapeutic Indications: If new therapeutic claims not documented in classical texts are made, proof of clinical safety and efficacy through clinical trials is required.
+- Classical Formulations: Formulations prepared exactly according to classical texts (First Schedule) are exempt from clinical trial requirements.
+- Good Manufacturing Practices (GMP): Compliance with Schedule T (GMP for ASU drugs) is mandatory for all licensed units.

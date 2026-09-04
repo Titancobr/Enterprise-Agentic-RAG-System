@@ -1,0 +1,24 @@
+SOURCE: Protection of Plant Varieties and Farmers' Rights Act, 2001 (PPV&FR Act)
+SECTION: 15, 24, 28, 39
+URL: https://plantauthority.gov.in/
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: plant_variety
+LANGUAGE: en
+
+Protection of Plant Varieties and Farmers' Rights Act, 2001 — Medicinal Plant Cultivars
+
+1. Protection of New Plant Varieties:
+Breeders and agricultural researchers developing novel cultivars of Ayurvedic medicinal plants (such as novel cultivars of Ashwagandha, Neem, Tulsi, or Guduchi) can register them under the PPV&FR Act, 2001.
+
+2. DUS Criteria (Section 15):
+To be eligible for registration, a variety must satisfy the DUS criteria:
+- Distinct: Clearly distinguishable by one or more essential characteristics from any other variety whose existence is commonly known.
+- Uniform: Subject to variation that may be expected from the particular features of its propagation, it is sufficiently uniform in its essential characteristics.
+- Stable: Its essential characteristics remain unchanged after repeated propagation.
+
+3. Period of Protection:
+Registration confers protection for 18 years in the case of trees and vines, and 15 years for other annual and biennial crops.
+
+4. Farmers' Rights (Section 39):
+Under Indian law, farmers are entitled to save, use, sow, resow, exchange, share, or sell their farm produce, including seed of a variety protected under this Act, provided the farmer does not sell branded seed. This is an exclusive Indian statutory framework separate from patent law.

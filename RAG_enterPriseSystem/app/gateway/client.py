@@ -88,8 +88,6 @@ def _build_chat_client():
             api_key=settings.PORTKEY_API_KEY,
             virtual_key=settings.GROQ_SLUG,
             provider="groq",
-            request_timeout=20,
-            max_retries=0,
         )
     key = get_next_groq_api_key()
     if key and Groq:

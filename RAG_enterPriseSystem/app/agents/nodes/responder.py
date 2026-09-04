@@ -233,6 +233,8 @@ def generate_node(state: AgentState):
     """
 
     jurisdiction_note = f"\nJurisdiction scope: {jurisdiction}. " if jurisdiction else ""
+    domain = state.get("legal_domain") or ""
+    domain_guidance = _get_domain_guidance(domain, user_msg)
     answer_shape = """
     Required structure for BOTH jurisdiction:
 
@@ -440,6 +442,7 @@ def generate_node(state: AgentState):
     When the context is insufficient, abstain from unsupported conclusions.
     {jurisdiction_note}
     {comprehensive_guidance}
+    {domain_guidance}
     {answer_shape}
     {RESPONSE_FORMAT_INSTRUCTIONS}
     
@@ -512,6 +515,110 @@ def _get_formulation_guidance(formulation_type: str) -> str:
         "INSUFFICIENT_INFO": "Need more details to classify. Key factors: ingredients, intended use, manufacturing process, reference to classical texts."
     }
     return guidance.get(formulation_type, guidance["INSUFFICIENT_INFO"])
+
+
+def _get_domain_guidance(domain: str, query: str) -> str:
+    q = query.lower()
+    if domain == "TRADEMARK" or any(k in q for k in ("trademark", "trade mark", "brand name", "வணிகமுத்திரை")):
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (TRADEMARKS):
+    - Governing Act: Trade Marks Act, 1999.
+    - Registrability: The name must be distinctive and capable of distinguishing goods.
+    - Grounds for Refusal (Section 9): Generic Ayurvedic names and botanical terms (e.g., 'Ashwagandha', 'Triphala', 'Churna', 'Rasayana') cannot be registered as trademarks for products containing those ingredients because they are descriptive of the goods.
+    - Coined / Distinctive Names: Coined or fanciful brand names (including coined Sanskrit names) can be registered if they distinguish the goods.
+    - International Registration: International brand protection is available via the Madrid System (Madrid Protocol).
+    - DO NOT include patent eligibility analysis, novelty/inventive-step tests, or traditional knowledge patent bars.
+    """
+    if domain == "GI_PROTECTION" or "gi" in q or "geographical indication" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (GEOGRAPHICAL INDICATIONS):
+    - Governing Act: Geographical Indications of Goods (Registration and Protection) Act, 1999.
+    - Section 2(e): Protects goods originating in a specific territory/region where a given quality, reputation, or other characteristic is essentially attributable to its geographical origin (e.g., Kerala Ayurvedic Oil, Kashmir Saffron).
+    - Application Process: Applications are filed with the Geographical Indications Registry in Chennai.
+    - Procedure: Submit proof of historical link and origin, registry examination, publication in the GI Journal, and a 4-month opposition window.
+    - Registration confers exclusive rights to the registered proprietor and authorized users under Section 13 for 10 years (renewable).
+    - DO NOT discuss patents or novelty.
+    """
+    if domain == "COPYRIGHT" or "copyright" in q or "textbook" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (COPYRIGHT):
+    - Governing Act: Copyright Act, 1957.
+    - Protects original literary works: Covers textbooks, research papers, formulation documentation, and instructional manuals under Section 13.
+    - Idea-Expression Dichotomy: Copyright protects the author's original written expression, NOT the underlying ideas, medical concepts, or formulations.
+    - Public Domain Classical Texts: Classical treatises (Charaka Samhita, Sushruta Samhita, etc.) are ancient works in the public domain. However, modern translations, critical commentaries, and annotations are protected by copyright.
+    - DO NOT discuss patents or novelty.
+    """
+    if domain == "PLANT_VARIETY" or "plant variety" in q or "cultivar" in q or "ppvfr" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (PLANT VARIETY PROTECTION):
+    - Governing Act: Protection of Plant Varieties and Farmers' Rights Act, 2001 (PPV&FR Act).
+    - Protects new plant varieties and crop cultivars (such as new Ashwagandha cultivars).
+    - Criteria (Section 15): Must satisfy DUS criteria — Distinct, Uniform, and Stable.
+    - Term of Protection: 15 years for annual/biennial crops; 18 years for trees and vines.
+    - Farmers' Rights (Section 39): Explicit statutory right allowing farmers to save, use, sow, resow, exchange, share, or sell farm-saved seed of protected varieties (cannot sell branded seed).
+    - This is separate and independent from patent protection.
+    """
+    if domain == "DESIGN" or "packaging" in q or "design of" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (DESIGNS & PACKAGING):
+    - Governing Act: Designs Act, 2000.
+    - Protects novel and original features of shape, configuration, pattern, or ornamentation applied to articles (e.g. bottles, containers, boxes for Ayurvedic products).
+    - Section 4: Requires novelty and originality; must not be previously published.
+    - Term: 10 years initially, extendable by 5 years (total 15 years).
+    - Distinct from trademark (which protects brand identity) and patent (which protects formulation/process).
+    """
+    if domain == "ABS_COMPLIANCE" or "abs" in q or "biodiversity" in q or "nba" in q or "sbb" in q or "own farm" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (ABS & BIODIVERSITY COMPLIANCE):
+    - Governing Act: Biological Diversity Act, 2002 and Biological Diversity Amendment Act, 2023.
+    - Section 3: Non-citizens, foreign entities, and Indian entities with foreign equity or control must obtain prior approval of the National Biodiversity Authority (NBA) for research, commercial utilization, or export of biological resources/extracts.
+    - Section 7: Indian citizens and domestic entities commercially utilizing biological resources must give prior intimation to the State Biodiversity Board (SBB).
+    - Section 20: NBA determines fair and equitable benefit sharing.
+    - Section 55 Exemption: Local farmers and growers cultivating biological resources (like Ashwagandha) on their own farm/land for sustenance and cultivation are explicitly EXEMPT from ABS requirements.
+    - Penalties: Violations attract civil fines under the 2023 amended provisions; non-disclosure in patent applications is grounds for opposition (Section 25) and revocation (Section 64) of patents.
+    """
+    if domain == "FSSAI_FOOD" or "ayurveda aahar" in q or "food" in q or "supplement" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (FOOD / AYURVEDA AAHAR):
+    - Governing Framework: FSSAI Ayurveda Aahar Regulations, 2022 and Food Safety and Standards Act, 2006.
+    - Permitted Claims: Structure-function claims (e.g., supports digestion, maintains vitality).
+    - Prohibited Claims (Section 24 FSS Act): CANNOT make disease treatment, cure, or prevention claims (e.g., cannot claim to cure diabetes or arthritis). Making disease claims automatically brings the product under drug regulations (Drugs & Cosmetics Act).
+    - Licensing: Requires FSSAI license from the State Food Authority. Formulations under the food route do not enjoy patent protection.
+    """
+    if domain == "COSMETIC" or "cosmetic" in q or "face cream" in q or "face wash" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (COSMETICS):
+    - Governing Framework: Cosmetics Rules, 2020 under the Drugs and Cosmetics Act.
+    - Permitted: External application for cleansing, beautifying, promoting attractiveness, or moisturizing.
+    - Strict Prohibition: CANNOT make therapeutic, curing, or disease prevention claims (e.g., cannot claim to treat acne, eczema, or skin infections). Therapeutic claims reclassify the product as a drug.
+    - Licensing: Cosmetic manufacturing license from State Licensing Authority. Clinical trials are not required for efficacy.
+    """
+    if domain == "PHYTOPHARMACEUTICAL" or "phytopharmaceutical" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (PHYTOPHARMACEUTICALS):
+    - Governing Framework: Drugs and Cosmetics Rules (Phytopharmaceutical route).
+    - For standardized botanical extracts with clinical trials proving therapeutic efficacy.
+    - Distinct from classical Ayurvedic medicines (which require adherence to authoritative texts) and proprietary medicines.
+    - Requires specific CDSCO/FDA approval, GMP compliance, pharmacopoeial standardization, and non-clinical/clinical trial data.
+    """
+    if domain == "INTERNATIONAL_IP" or "pct" in q or "wipo" in q or "gratk" in q or "nagoya" in q or "differences between indian and us" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (INTERNATIONAL IP & TREATIES):
+    - PCT (Patent Cooperation Treaty): Indian applicants can file an international patent application with the Indian Patent Office as Receiving Office, designating member states (US, EP, JP).
+    - WIPO GRATK Treaty 2024: Requires mandatory disclosure in patent applications of the country of origin of genetic resources and Indigenous/traditional knowledge.
+    - Nagoya Protocol: Requires Prior Informed Consent (PIC) and Mutually Agreed Terms (MAT) for access to genetic resources and traditional knowledge. Users in importing countries (e.g., Germany) must comply with provider country (India) domestic ABS laws.
+    - Key Differences: India has Section 3(p) TK exclusion and Form 18A biological source disclosure; US and EPO evaluate novelty/inventive step against prior art including TKDL, and permit method-of-treatment claims more liberally.
+    """
+    if domain == "PATENT_ELIGIBILITY" or "patent" in q:
+        return """
+    DOMAIN-SPECIFIC REQUIREMENTS (PATENT ELIGIBILITY):
+    - Governing Act: Patents Act, 1970 (as amended).
+    - Section 3(p): Statutory bar prohibiting patents on traditional knowledge or an aggregation/duplication of known properties of traditionally known components. Classical formulations in First Schedule texts cannot be patented as products.
+    - Process Patents: Novel, non-obvious extraction methods, synergistic combinations with unexpected non-additive effects, or novel delivery systems may be patentable as processes if they meet novelty, inventive step, and industrial applicability.
+    - Form 18A: Mandatory disclosure of the source and geographical origin of biological material.
+    - TKDL: Acts as prior art cited by patent examiners (IPO, USPTO, EPO) to reject claims lacking novelty.
+    """
+    return ""
 
 
 def _grounded_template_answer(state: AgentState) -> str:
@@ -633,20 +740,159 @@ def _grounded_template_answer(state: AgentState) -> str:
             f"## Sources Used\n\n{source_lines}"
         )
 
+    domain = state.get("legal_domain") or "GENERAL_IP"
+
+    if domain == "TRADEMARK" or any(k in query for k in ("trademark", "trade mark", "brand name", "logo", "sanskrit name")):
+        return (
+            "## Summary\n\n"
+            "Ayurvedic product branding is governed by the **Trade Marks Act, 1999**. Generic or descriptive classical Sanskrit formulation names cannot be registered as proprietary trademarks, whereas distinctive or coined brand names are protectable.\n\n"
+            "## Key Requirements\n\n"
+            "- **Distinctiveness (Section 9):** Names that designate the kind, quality, or generic ingredients (e.g., 'Triphala Churna', 'Ashwagandha Rasayana') are refused registration under Section 9 of the Trade Marks Act, 1999.\n"
+            "- **Coined Brand Names:** Fanciful or coined marks (including coined Sanskrit terms that do not describe the ingredients) are registrable to distinguish goods.\n"
+            "- **Class Classification:** Ayurvedic pharmaceuticals and medicinal formulations are registered under Class 5; Ayurvedic cosmetics under Class 3.\n"
+            "- **International Brand Protection:** International registration across multiple target countries can be achieved through the Madrid System (Madrid Protocol) administered by WIPO via the Indian Trade Marks Registry.\n\n"
+            "## Evidence Limitations\n\n"
+            "Trade mark registrability is determined through examination and potential opposition. Prior brand search on the IP India Trade Mark database is essential.\n\n"
+            "## Next Steps\n\n"
+            "1. Conduct a comprehensive trademark search across Class 3 / Class 5 on the IP India portal.\n"
+            "2. Ensure the proposed trademark is distinctive and not a generic Ayurvedic formula name.\n"
+            "3. File Form TM-A with the Indian Trade Marks Registry, or designate target countries under the Madrid Protocol.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "GI_PROTECTION" or any(k in query for k in ("gi", "geographical indication")):
+        return (
+            "## Summary\n\n"
+            "Region-specific classical formulations and botanical goods are protected under the **Geographical Indications of Goods (Registration and Protection) Act, 1999**. Applications are handled by the Geographical Indications Registry in Chennai.\n\n"
+            "## Key Requirements\n\n"
+            "- **Statutory Definition (Section 2(e)):** Protects goods where a given quality, reputation, or other characteristic is essentially attributable to their geographical origin (e.g., Kashmir Saffron, Kerala Ayurvedic Oil).\n"
+            "- **Collective Ownership:** GIs belong to an association of persons, producers, or authorized collective bodies, not private individuals.\n"
+            "- **Registration Procedure:** Applications must be filed with the Geographical Indications Registry in Chennai, followed by examination and a mandatory 4-month opposition window in the GI Journal.\n"
+            "- **Duration & Protection:** Valid for 10 years, renewable indefinitely, conferring exclusive rights under Section 13 against false designation or passing off.\n\n"
+            "## Evidence Limitations\n\n"
+            "Documentary proof of historical origin, traditional geographical linkage, and specification of standards must be submitted.\n\n"
+            "## Next Steps\n\n"
+            "1. Form or coordinate with an association of regional cultivators/manufacturers.\n"
+            "2. File the GI application at the Chennai GI Registry with historical and geographical evidence.\n"
+            "3. Monitor the 4-month opposition window following publication in the GI Journal.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "COPYRIGHT" or any(k in query for k in ("copyright", "textbook", "book", "literary")):
+        return (
+            "## Summary\n\n"
+            "Ayurvedic texts, commentaries, instructional manuals, and databases are protected under the **Copyright Act, 1957**. Ancient classical treatises are in the public domain, but original expressions, commentaries, and translations receive copyright protection.\n\n"
+            "## Key Requirements\n\n"
+            "- **Original Literary Works (Section 13):** Textbooks, modern interpretations, and formulation compilations receive statutory copyright protection for the author's life plus 60 years.\n"
+            "- **Idea-Expression Dichotomy:** Copyright protects the original expression and text, not the underlying medical knowledge, herbal ingredients, or therapeutic ideas.\n"
+            "- **Classical Texts in Public Domain:** Ancient root texts (Charaka Samhita, Sushruta Samhita) cannot be copyrighted; however, new translations, editorial annotations, or critical editions qualify for independent copyright.\n"
+            "- **TKDL Protection:** Documented traditional formulations in the TKDL serve as prior art against third-party misappropriation.\n\n"
+            "## Evidence Limitations\n\n"
+            "Protection applies automatically upon fixation, but registration with the Copyright Office facilitates enforcement against infringement.\n\n"
+            "## Next Steps\n\n"
+            "1. Document the original literary expression and differentiate it from public domain root texts.\n"
+            "2. File for voluntary copyright registration with the Copyright Office of India.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "PLANT_VARIETY" or any(k in query for k in ("plant variety", "ppvfr", "cultivar")):
+        return (
+            "## Summary\n\n"
+            "New herbal cultivars and medicinal plant varieties are protected under the **Protection of Plant Varieties and Farmers' Rights Act, 2001 (PPV&FR Act)** through the PPV&FR Authority in New Delhi.\n\n"
+            "## Key Requirements\n\n"
+            "- **DUS Criteria (Section 15):** The medicinal plant variety must demonstrate Distinctiveness, Uniformity, and Stability (DUS) alongside novelty.\n"
+            "- **Farmers' Rights (Section 39):** Traditional farmers and tribal communities retain statutory rights to save, use, sow, resow, exchange, or sell their farm-saved seed/propagating material.\n"
+            "- **Benefit Sharing (Section 26):** Commercial breeders utilizing indigenous plant varieties must contribute to the National Gene Fund.\n\n"
+            "## Evidence Limitations\n\n"
+            "Requires multi-season DUS field trials according to species-specific testing guidelines established by the Authority.\n\n"
+            "## Next Steps\n\n"
+            "1. Conduct preliminary DUS characterization against existing reference varieties.\n"
+            "2. File for registration under PPV&FR Form I with the Plant Authority in New Delhi.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "DESIGN" or any(k in query for k in ("design", "bottle", "container", "packaging")):
+        return (
+            "## Summary\n\n"
+            "Aesthetic shape, ornamentation, and packaging for Ayurvedic products are protectable under the **Designs Act, 2000**. Protection lasts up to 15 years.\n\n"
+            "## Key Requirements\n\n"
+            "- **Novelty & Shape (Section 4):** Packaging bottles, containers, and blister configurations must be novel, original, and significantly distinguished from known designs.\n"
+            "- **Exclusion of Functional Features:** Functional or mechanical mechanisms cannot be protected as industrial designs; only aesthetic visual features qualify.\n"
+            "- **Duration (Section 11):** Copyright in a registered design is granted initially for 10 years, extendable by 5 years (15 years total).\n\n"
+            "## Evidence Limitations\n\n"
+            "Prior publication anywhere in India or abroad prior to the filing date invalidates the design.\n\n"
+            "## Next Steps\n\n"
+            "1. Prepare formal perspective and orthographic representation drawings of the bottle/packaging.\n"
+            "2. File the application under the appropriate class with the Designs Wing of the Patent Office in Kolkata.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "ABS_COMPLIANCE" or any(k in query for k in ("abs", "nba", "sbb", "biodiversity")):
+        return (
+            "## Summary\n\n"
+            "Access to Indian biological resources (herbs, plants, extracts) for commercial utilization or patent filing is strictly regulated under the **Biological Diversity Act, 2002 (amended 2023)**.\n\n"
+            "## Key Requirements\n\n"
+            "- **Foreign Entities / Export (Section 3):** Non-Indian citizens, foreign entities, and Indian companies with foreign shareholding must obtain prior approval from the National Biodiversity Authority (NBA).\n"
+            "- **Indian Entities (Section 7):** Indian citizens and entities require prior intimation to the concerned State Biodiversity Board (SBB) for commercial utilization.\n"
+            "- **IPR Approval (Section 6 & 20):** Any person applying for an intellectual property right based on biological research obtained from India must obtain NBA approval before grant (using Form III).\n"
+            "- **Cultivator Exemption (Section 55):** Local farmers, cultivators, and vaidyars/traditional healers cultivating biological resources on their own land are exempt from prior NBA approval.\n\n"
+            "## Evidence Limitations\n\n"
+            "Compliance obligations depend on the origin of the raw material (wild-harvested vs. certified cultivated) and corporate nationality.\n\n"
+            "## Next Steps\n\n"
+            "1. Determine corporate entity nationality under Section 3 vs Section 7.\n"
+            "2. File Form I (access) or Form III (IPR approval) with the NBA via the online portal (e-NBA).\n"
+            "3. Execute Access and Benefit Sharing (ABS) agreement with the relevant Authority/Board.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "FSSAI_FOOD" or any(k in query for k in ("food", "aahar", "supplement", "fssai")):
+        return (
+            "## Summary\n\n"
+            "Herbal and Ayurvedic dietary supplements are regulated under the **FSSAI (Ayurveda Aahar) Regulations, 2022**. Therapeutic or medicinal disease-curing claims are prohibited on food labels.\n\n"
+            "## Key Requirements\n\n"
+            "- **Ayurveda Aahar Definition:** Foods prepared in accordance with the authoritative books listed in Schedule A of the regulations.\n"
+            "- **No Disease Cure Claims:** Under Section 24 of the Food Safety and Standards Act, 2006, Ayurveda Aahar products cannot claim to treat, prevent, or cure human diseases.\n"
+            "- **Mandatory Logo:** Products must display the dedicated Ayurveda Aahar logo alongside the FSSAI license number.\n\n"
+            "## Evidence Limitations\n\n"
+            "Products with therapeutic claims must be licensed as Ayurvedic medicines under the Drugs & Cosmetics Act, not as Ayurveda Aahar.\n\n"
+            "## Next Steps\n\n"
+            "1. Verify ingredients against Schedule A authoritative Ayurvedic texts.\n"
+            "2. Apply for an FSSAI manufacturing license under the Ayurveda Aahar category on the FoSCoS portal.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    if domain == "COSMETIC" or any(k in query for k in ("cosmetic", "cream", "lotion", "wash")):
+        return (
+            "## Summary\n\n"
+            "Herbal beauty, skin, and hair preparations intended for topical application without therapeutic claims are governed by the **Cosmetics Rules, 2020** under the Drugs and Cosmetics Act.\n\n"
+            "## Key Requirements\n\n"
+            "- **Cosmetic vs. Drug:** Under Section 3(aaa), cosmetics are articles intended to be rubbed, poured, or sprayed for cleansing, beautifying, or altering the appearance without altering bodily functions.\n"
+            "- **Labeling & Claims (Rule 34):** No medicinal, preventive, or cure claims for skin diseases (e.g., eczema, psoriasis) are permitted on cosmetic labels.\n"
+            "- **Formulation Licensing:** Manufactured under a cosmetic manufacturing license from the State Licensing Authority (SLA) under Schedule M-II / Cosmetics Rules.\n\n"
+            "## Evidence Limitations\n\n"
+            "Adding therapeutic claims triggers the requirement for an Ayurvedic Drug license under Rule 158B.\n\n"
+            "## Next Steps\n\n"
+            "1. Review label claims to ensure they remain cosmetic and beautifying.\n"
+            "2. Apply for a cosmetic manufacturing license with the State Licensing Authority.\n\n"
+            f"## Sources Used\n\n{source_lines}"
+        )
+
+    # Default Patent Eligibility Guidance
     return (
         "## Summary\n\n"
-        "Ayurveda formulations documented as traditional knowledge may face a **patentability bar**, while novel processes or genuinely new proprietary formulations may be patentable.\n\n"
+        "Patent protection for Ayurvedic innovations in India is governed by the **Patents Act, 1970**. Traditional knowledge formulations are excluded under **Section 3(p)**, while novel processes and non-obvious synergistic compositions may be patentable.\n\n"
         "## Key Requirements\n\n"
-        "- **Novelty and inventive step:** Must be demonstrated for patent eligibility.\n"
-        "- **Licensing:** Licensing under the appropriate AYUSH pathway is typically required.\n"
-        "- **ABS checks:** Apply when biological resources or traditional knowledge are involved.\n"
-        "- **Source/origin disclosure:** Compliance status must be documented in the patent workflow.\n\n"
+        "- **Traditional Knowledge Bar (Section 3(p)):** An invention which in effect is traditional knowledge or an aggregation of known properties of traditionally known components is not patentable.\n"
+        "- **Synergistic Formulations & Novel Processes:** Novel extraction methods, isolated active phytoconstituents, or synergistic combinations demonstrating unexpected biological activity beyond additive effects can overcome Section 3(p) and Section 3(e).\n"
+        "- **Form 18A (Expedited Examination):** Patent applicants who are startups, female applicants, or eligible research institutions can apply for expedited examination using Form 18A.\n"
+        "- **TKDL Prior Art Defense:** The Indian Patent Office checks the Traditional Knowledge Digital Library (TKDL) as prior art to reject claims covering classical formulations.\n"
+        "- **Form 18A (Expedited Examination):** Expedited examination can be requested under Rule 24C / Form 18A for recognized startups and small entities.\n\n"
         "## Evidence Limitations\n\n"
-        "The available retrieved sources provide general patentability and compliance guidance but do not address the specifics of any particular formulation, ingredient, or intended use.\n\n"
+        "Prior-art searching against TKDL and global patent databases is mandatory before filing to establish novelty and inventive step.\n\n"
         "## Next Steps\n\n"
-        "1. Provide the exact formulation and intended use.\n"
-        "2. Identify whether the formulation is classical or proprietary.\n"
-        "3. Conduct a formulation-specific prior-art and regulatory review.\n\n"
+        "1. Conduct a rigorous prior art search including TKDL and classical AYUSH texts.\n"
+        "2. Generate comparative empirical data establishing synergistic therapeutic efficacy beyond individual ingredients.\n"
+        "3. File the patent specification with Form 18A (if eligible for expedited examination) and Form III with the NBA.\n\n"
         f"## Sources Used\n\n{source_lines}"
     )
 

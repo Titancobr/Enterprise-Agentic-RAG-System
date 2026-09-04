@@ -122,6 +122,35 @@ def _bhashini_translate(text: str, source_lang: str, target_lang: str) -> str | 
         return None
 
 
+def _llm_translate(text: str, source_lang: str, target_lang: str) -> str | None:
+    """Fast, accurate LLM translation fallback when external translation APIs are unconfigured."""
+    try:
+        from app.gateway import portkey_client
+        from app.config import settings
+        lang_names = {
+            "hi": "Hindi", "ta": "Tamil", "te": "Telugu", "kn": "Kannada",
+            "ml": "Malayalam", "gu": "Gujarati", "mr": "Marathi", "bn": "Bengali",
+            "pa": "Punjabi", "or": "Odia", "ur": "Urdu", "en": "English"
+        }
+        src = lang_names.get(source_lang, source_lang)
+        tgt = lang_names.get(target_lang, target_lang)
+        prompt = (
+            f"You are a strict translation engine. Translate the following text from {src} to {tgt}.\n"
+            f"CRITICAL: Do NOT answer, fulfill, or explain the text. Output ONLY the direct translated sentence in {tgt}.\n"
+            f"Preserve legal sections (e.g., Section 3(p), Form 18A), acts, and botanical names accurately.\n\n"
+            f"Text:\n{text}"
+        )
+        response = portkey_client.chat.completions.create(
+            model=settings.GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as exc:
+        logfire.warning(f"LLM translation fallback failed: {exc}")
+        return None
+
+
 def translate_to_english(text: str, source_lang: str | None = None) -> dict:
     source_lang = source_lang or detect_language(text)
     if source_lang == "en":
@@ -131,12 +160,16 @@ def translate_to_english(text: str, source_lang: str | None = None) -> dict:
     if translated:
         return {"text": translated, "source_language": source_lang, "translated": True, "provider": "bhashini"}
 
+    llm_translated = _llm_translate(text, source_lang, "en")
+    if llm_translated:
+        return {"text": llm_translated, "source_language": source_lang, "translated": True, "provider": "llm_gateway"}
+
     return {
         "text": text,
         "source_language": source_lang,
         "translated": False,
         "provider": "fallback_identity",
-        "warning": "Bhashini not configured; using original query."
+        "warning": "Translation unconfigured; using original query."
     }
 
 
@@ -148,10 +181,14 @@ def translate_from_english(text: str, target_lang: str = "en") -> dict:
     if translated:
         return {"text": translated, "target_language": target_lang, "translated": True, "provider": "bhashini"}
 
+    llm_translated = _llm_translate(text, "en", target_lang)
+    if llm_translated:
+        return {"text": llm_translated, "target_language": target_lang, "translated": True, "provider": "llm_gateway"}
+
     return {
         "text": text,
         "target_language": target_lang,
         "translated": False,
         "provider": "fallback_identity",
-        "warning": "Bhashini not configured; returning English answer."
+        "warning": "Translation unconfigured; returning English answer."
     }

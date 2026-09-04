@@ -12,6 +12,7 @@ class AgentState(TypedDict):
     status: str
     final_answer: str
     intent: Optional[str]
+    legal_domain: Optional[str]
     jurisdiction: Optional[str]
     requested_jurisdiction: Optional[str]
     formulation_type: Optional[str]

@@ -1,0 +1,18 @@
+SOURCE: Copyright Act, 1957 (as amended)
+SECTION: 13, 14, 52
+URL: https://copyright.gov.in/
+VERSION_DATE: 2023-12-01
+JURISDICTION: INDIA
+CATEGORY: copyright
+LANGUAGE: en
+
+Copyright Act, 1957 — Protection of Ayurveda Literature, Textbooks, and Documentation
+
+1. Scope of Protection:
+Original literary works, including Ayurveda textbooks, research publications, formulation documentation, manufacturing manuals, and educational materials, receive statutory copyright protection under Section 13 of the Copyright Act, 1957.
+
+2. Idea-Expression Dichotomy:
+Copyright protects the specific expression—the original words, layout, and textual exposition written by the author—not the underlying concepts, medicinal ideas, mathematical formulas, or herbal formulations themselves. A third party may formulate or write about the same Ayurvedic compound using their own independent wording without infringing copyright.
+
+3. Classical Texts and Public Domain:
+Authoritative ancient Ayurvedic texts documented in the First Schedule (such as Charaka Samhita, Sushruta Samhita, and Ashtanga Hridaya) are in the public domain. Anyone may reproduce classical verses. However, modern translations, critical commentaries, explanatory annotations, and editorial arrangements are protected as original derivative literary works.

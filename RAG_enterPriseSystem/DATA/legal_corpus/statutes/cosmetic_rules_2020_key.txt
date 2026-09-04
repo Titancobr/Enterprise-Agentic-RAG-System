@@ -1,0 +1,20 @@
+SOURCE: Cosmetics Rules, 2020
+SECTION: Rule 21, 34, 38
+URL: https://cdsco.gov.in/
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: cosmetic
+LANGUAGE: en
+
+Cosmetics Rules, 2020 — Herbal and Ayurvedic Cosmetics vs. Ayurvedic Medicines
+
+1. Definition and Scope:
+Under the Cosmetics Rules 2020, cosmetic products containing herbal or Ayurvedic ingredients (such as face creams, face washes, skin cleansers, moisturizing oils, hair shampoos) are intended for external application to cleanse, beautify, promote attractiveness, or alter appearance.
+
+2. Prohibition on Therapeutic Claims:
+A cosmetic product cannot make therapeutic, medicinal, curing, or disease prevention claims (such as claiming to treat acne, cure psoriasis, cure eczema, or relieve arthritis). Making therapeutic claims instantly reclassifies the product under the Drugs and Cosmetics Act as a drug/medicine, requiring an AYUSH manufacturing license, clinical/safety evidence, and adherence to drug labeling standards.
+
+3. Regulatory Requirements:
+- Cosmetics require a cosmetic manufacturing license from the State Licensing Authority.
+- Formulations do not require clinical trials to prove therapeutic efficacy (since therapeutic claims are prohibited), but must satisfy safety standards and heavy-metal/microbial limits.
+- Intellectual property for cosmetics typically involves brand trademarks and design protection for packaging/bottles. Formulations per se do not qualify for patent protection unless a truly novel cosmetic composition or synergistic extraction process is demonstrated.

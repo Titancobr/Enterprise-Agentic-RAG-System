@@ -1,0 +1,24 @@
+SOURCE: Biological Diversity Act, 2002 (amended by Biological Diversity Amendment Act, 2023)
+SECTION: 3, 7, 20, 24, 55
+URL: https://nbaindia.org/
+VERSION_DATE: 2024-01-01
+JURISDICTION: INDIA
+CATEGORY: abs_compliance
+LANGUAGE: en
+
+Biological Diversity Act, 2002 and 2023 Amendments — Access and Benefit Sharing (ABS) Provisions
+
+1. Access by Foreign Entities or Export (Section 3):
+No person who is not a citizen of India, or is a body corporate, association or organization not incorporated or registered in India, or incorporated in India having any non-Indian participation in share capital or management, shall obtain any biological resource occurring in India or associated knowledge for research, commercial utilization, bio-survey or bio-utilization without prior approval of the National Biodiversity Authority (NBA). Export of biological resources (including plants like Ashwagandha, Neem) for commercial utilization or foreign research requires prior NBA approval.
+
+2. Access by Indian Entities / Commercial Utilization (Section 7):
+Indian citizens and Indian entities obtaining biological resources occurring in India for commercial utilization must give prior intimation to the concerned State Biodiversity Board (SBB) in the prescribed format. SBB may restrict or prohibit activities contrary to conservation or sustainable use.
+
+3. Determination of Benefit Sharing (Section 20):
+The NBA determines fair and equitable benefit sharing arising out of the use of accessed biological resources, their derivatives, innovations, or traditional knowledge. Benefit sharing terms (MAT) must be documented.
+
+4. Cultivator and Farmer Exemption (Section 55 & Section 7 Proviso):
+The provisions of the Act do not apply to local people, farmers, and communities of the area, including growers and cultivators of biological resources, who cultivate medicinal plants (such as Ashwagandha) on their own farm/land for sustenance, traditional use, or sale to domestic buyers. The ABS requirement does not attach to individual farmers cultivating notified crops on their own private agricultural land.
+
+5. Offenses and Penalties:
+Failure to intimate SBB, failure to obtain NBA approval, or non-compliance with ABS agreements attracts civil penalties and financial fines adjudicated by designated officers under the 2023 Act. In patent law, non-disclosure or wrongful disclosure of biological source is grounds for opposition under Section 25 and revocation under Section 64 of the Patents Act.

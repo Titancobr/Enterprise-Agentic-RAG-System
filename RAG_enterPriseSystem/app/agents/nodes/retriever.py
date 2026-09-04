@@ -16,6 +16,16 @@ AUTHORIZED_SOURCE_TERMS = (
     "trips",
     "wipo",
     "nagoya",
+    "trade marks",
+    "trademark",
+    "copyright",
+    "plant varieties",
+    "ppvfr",
+    "designs act",
+    "cosmetic rules",
+    "cosmetics rules",
+    "tkdl",
+    "pct",
 )
 
 
