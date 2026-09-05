@@ -9,16 +9,16 @@ class Settings:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
     # --- VECTOR DB (QDRANT) ---
-    QDRANT_URL = os.getenv("QDRANT_CLUSTER_ENDPOINT")
-    QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-    QDRANT_COLLECTION = "enterprise_rag"
+    QDRANT_URL = (os.getenv("QDRANT_CLUSTER_ENDPOINT") or "").strip()
+    QDRANT_API_KEY = (os.getenv("QDRANT_API_KEY") or "").strip()
+    QDRANT_COLLECTION = (os.getenv("QDRANT_COLLECTION") or "enterprise_rag").strip()
 
     # --- REASONING ENGINE (GROQ) ---
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     GROQ_API_KEYS_RAW = os.getenv("GROQ_API_KEYS", "")
-    GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-    GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.1-8b-instant")
-    GROQ_GUARDRAIL_MODEL = os.getenv("GROQ_GUARDRAIL_MODEL", "llama-3.1-8b-instant")
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b").strip()
+    GROQ_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "openai/gpt-oss-20b").strip()
+    GROQ_GUARDRAIL_MODEL = os.getenv("GROQ_GUARDRAIL_MODEL", "openai/gpt-oss-20b").strip()
 
     @property
     def groq_key_list(self) -> list[str]:

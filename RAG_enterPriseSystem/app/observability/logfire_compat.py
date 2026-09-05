@@ -47,6 +47,12 @@ class _LogfireCompat:
             return _logfire.instrument_requests(*args, **kwargs)
         return None
 
+    @staticmethod
+    def _safe_msg(msg):
+        if isinstance(msg, str) and "{" in msg and "}" in msg:
+            return msg.replace("{", "{{").replace("}", "}}")
+        return msg
+
     def span(self, *args, **kwargs):
         if _logfire:
             return _logfire.span(*args, **kwargs)
@@ -54,15 +60,16 @@ class _LogfireCompat:
 
     def info(self, message, *args, **kwargs):
         if _logfire:
-            return _logfire.info(message, *args, **kwargs)
+            return _logfire.info(self._safe_msg(message), *args, **kwargs)
         logger.info(message)
         return None
 
     def warning(self, message, *args, **kwargs):
+        safe = self._safe_msg(message)
         if _logfire and hasattr(_logfire, "warning"):
-            return _logfire.warning(message, *args, **kwargs)
+            return _logfire.warning(safe, *args, **kwargs)
         if _logfire and hasattr(_logfire, "warn"):
-            return _logfire.warn(message, *args, **kwargs)
+            return _logfire.warn(safe, *args, **kwargs)
         logger.warning(message)
         return None
 
@@ -71,13 +78,13 @@ class _LogfireCompat:
 
     def error(self, message, *args, **kwargs):
         if _logfire:
-            return _logfire.error(message, *args, **kwargs)
+            return _logfire.error(self._safe_msg(message), *args, **kwargs)
         logger.error(message)
         return None
 
     def exception(self, message, *args, **kwargs):
         if _logfire:
-            return _logfire.exception(message, *args, **kwargs)
+            return _logfire.exception(self._safe_msg(message), *args, **kwargs)
         logger.exception(message)
         return None
 

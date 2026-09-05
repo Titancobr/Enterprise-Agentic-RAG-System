@@ -9,10 +9,14 @@ try:
 except ModuleNotFoundError:
     QdrantClient = None
 
+_qdrant_url = (settings.QDRANT_URL or "").strip()
+_qdrant_key = (settings.QDRANT_API_KEY or "").strip()
+
 client = QdrantClient(
-    url=settings.QDRANT_URL,
-    api_key=settings.QDRANT_API_KEY
-) if QdrantClient and settings.QDRANT_URL and not settings.QDRANT_URL.startswith("your_") else None
+    url=_qdrant_url,
+    api_key=_qdrant_key,
+    check_compatibility=False
+) if QdrantClient and _qdrant_url and not _qdrant_url.startswith("your_") else None
 
 def search_enterprise_knowledge(query: str, limit: int = 8):
     """
